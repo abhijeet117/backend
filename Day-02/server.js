@@ -14,4 +14,8 @@ app.get('/home', (req, res) =>{
     res.send("This is Home page");
 });
 
+app.get('/move', (req, res) =>{
+    res.send("This is Home page");
+});
+
 app.listen(3000)
