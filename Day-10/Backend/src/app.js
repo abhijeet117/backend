@@ -43,7 +43,7 @@ app.delete("https://backend-lsko.onrender.com/api/notes/:id", async (req, res) =
   });
 });
 
-app.patch("https://backend-lsko.onrender.com/api/notes/:id", async (req, res) => {
+app.patch("/api/notes/:id", async (req, res) => {
   const id = req.params.id;
 
   const { description } = req.body;

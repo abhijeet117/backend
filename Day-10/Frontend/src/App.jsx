@@ -7,7 +7,7 @@ function App() {
   ]);
 
   function getAllNotes() {
-      axios.get("http://localhost:3000/api/notes").then((res) => {
+      axios.get("https://backend-lsko.onrender.com/api/notes").then((res) => {
       setNote(res.data.note);
       console.log(res.data);
     })
@@ -27,7 +27,7 @@ function App() {
 
     console.log(tittle.value , description.value)
 
-    axios.post("http://localhost:3000/api/notes",{
+    axios.post("https://backend-lsko.onrender.com/api/notes",{
       tittle : tittle.value,
       description: description.value
     })
@@ -38,6 +38,17 @@ function App() {
 
     
   }
+
+
+  function handleDelete(noteId) {
+    axios.delete("https://backend-lsko.onrender.com/api/notes/" + noteId)
+    .then(res =>{
+      console.log(res.data);
+      getAllNotes()
+    })
+  }
+
+
   
 
   return (
@@ -47,6 +58,7 @@ function App() {
       <input name="tittle" type="text" placeholder="Enter Tittle" />
       <input name="description" type="text" placeholder="Enter Description" />
       <button >Create Note</button>
+
     </form>
 
 
@@ -57,6 +69,9 @@ function App() {
             <div className="note">
               <h1>{note.tittle}</h1>
               <p>{note.description}</p>
+              <button onClick={()=>{
+                handleDelete(note._id)
+              }}>Delete</button>
             </div>
           </div>
         );
