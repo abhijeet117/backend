@@ -1,5 +1,5 @@
 const userModel = require("../models/user.model")
-const crypto = require("crypto")
+const bcrypt = require("bcryptjs")
 const jwt = require('jsonwebtoken')
 
 
@@ -19,7 +19,7 @@ async function userRegister(req, res) {
     });
   }
 
-  const hash = crypto.createHash("sha256").update(password).digest("hex");
+  const hash = await bcrypt.hash(password, 10)
 
   const user = await userModel.create({
     userName,
@@ -31,7 +31,7 @@ async function userRegister(req, res) {
 
   const token = jwt.sign({
     id : user._id,
-  }, process.env.JWT_SECRET, {expire : '1d'})
+  }, process.env.JWT_SECRET, {expiresIn : '7d'})
 
   res.cookie("token", token)
 
@@ -68,9 +68,13 @@ async function userLogin(req, res) {
     })
   }
 
-  const hash = crypto.createHash("sha256").update(password).digest("hex");
+  /* onst hash = crypto.createHash("sha256").update(password).digest("hex");
 
-  const isPassword = hash === user.password
+  const isPassword = hash === user.password */
+
+  const isPassword = await bcrypt.compare(password, user.password)
+
+
 
   if(!isPassword) {
     return res.status(401).json({
@@ -98,4 +102,4 @@ async function userLogin(req, res) {
 
 }
 
-module.exports = {userRegister , userLogin }
+module.exports = {userRegister , userLogin };
