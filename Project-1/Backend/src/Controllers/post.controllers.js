@@ -10,25 +10,7 @@ const imagekit = new ImageKit({
 });
 
 async function createPost(req, res) {
-  console.log(req.body, req.file);
-
-  const token = req.cookies.token;
-
-  if (!token) {
-    return res.status(401).json({
-      message: "Token not matched, Unauthorised access!",
-    });
-  }
-
-  let decode; // Scoping to use in global
-
-  try {
-    decode = jwt.verify(token, process.env.JWT_SECRET);
-  } catch (err) {
-    return res.status(401).json({
-      message: "User not authorised...",
-    });
-  }
+  const userId = req.user.id
 
   const file = await imagekit.files.upload({
     file: await toFile(Buffer.from(req.file.buffer), "file"),
@@ -39,7 +21,7 @@ async function createPost(req, res) {
   const post = await postModel.create({
     caption: req.body.tittle,
     img_url: file.url,
-    user: decode.id,
+    user: userId,
   });
 
   res.status(201).json({
@@ -49,25 +31,7 @@ async function createPost(req, res) {
 }
 
 async function getAllPosts(req, res) {
-  const token = req.cookies.token;
-
-  if (!token) {
-    return res.status(401).json({
-      message: "Token not found!",
-    });
-  }
-
-  let decoded = "";
-
-  try {
-    decoded = jwt.verify(token, process.env.JWT_SECRET);
-  } catch (err) {
-    return res.status(402).json({
-      message: "Token invalid",
-    });
-  }
-
-  const userId = decoded.id;
+  const userId = req.user.id
 
   const posts = await postModel.find({
     user: userId,
@@ -80,23 +44,7 @@ async function getAllPosts(req, res) {
 }
 
 async function findSpecPost(req, res) {
-  const token = req.cookies.token;
-  if (!token) {
-    return res.status(401).json({
-      message: "Unauthorised access!",
-    });
-  }
-
-  let decoded;
-  try {
-    decoded = jwt.verify(token, process.env.JWT_SECRET);
-  } catch (err) {
-    return res.status(401).json({
-      message: "Invalid token!",
-    });
-  }
-
-  const userId = decoded.id;
+  const userId = req.user.id
 
   const postId = req.params.postId;
 

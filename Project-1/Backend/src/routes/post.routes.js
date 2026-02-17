@@ -5,12 +5,14 @@ const {createPost, getAllPosts, findSpecPost} = require("../Controllers/post.con
 
 const multer  = require('multer')
 const upload = multer({ storage: multer.memoryStorage() })
+
+const isValidUser = require("../middleware/auth.middleware")
  
 
-postRouter.post("/" , upload.single("image"), createPost )
+postRouter.post("/" , isValidUser , upload.single("image"), createPost )
 
-postRouter.get("/", getAllPosts)
+postRouter.get("/", isValidUser , getAllPosts)
 
-postRouter.get("/details/:postId" , findSpecPost)
+postRouter.get("/details/:postId" , isValidUser , findSpecPost)
 
 module.exports = postRouter;
