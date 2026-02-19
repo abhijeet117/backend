@@ -1,9 +1,12 @@
 const postModel = require("../models/post.model");
+const userModel = require("../models/user.model");
+const mongoose = require("mongoose");
 
 const ImageKit = require("@imagekit/nodejs");
 const { toFile } = require("@imagekit/nodejs");
 const { message } = require("antd");
 const jwt = require("jsonwebtoken");
+const likeModel = require("../models/likes.model");
 
 const imagekit = new ImageKit({
   privateKey: process.env.IMAGEKIT_PRIVATE_KEY,
@@ -72,4 +75,62 @@ async function findSpecPost(req, res) {
   });
 }
 
-module.exports = { createPost, getAllPosts, findSpecPost };
+async function likePost(req, res) {
+  try {
+    const postId = req.params.postId
+    if (!postId || !mongoose.Types.ObjectId.isValid(postId)) {
+      return res.status(400).json({
+        message: "Invalid post id!"
+      })
+    }
+
+    const user = await userModel.findById(req.user.id)
+    if (!user) {
+      return res.status(401).json({
+        message: "Invalid user!"
+      })
+    }
+
+    const userName = user.userName
+
+    const post = await postModel.findById(postId)
+    if (!post) {
+      return res.status(404).json({
+        message: "No post found!"
+      })
+    }
+
+    const alreadyLiked = await likeModel.findOne({
+      post: postId,
+      user: userName
+    })
+
+    if (alreadyLiked) {
+      return res.status(409).json({
+        message: "You already liked this post!"
+      })
+    }
+
+    const like = await likeModel.create({
+      post: postId,
+      user: userName
+    })
+
+    return res.status(200).json({
+      message: "Post liked successfully...",
+      like
+    })
+  } catch (err) {
+    if (err && err.code === 11000) {
+      return res.status(409).json({
+        message: "You already liked this post!"
+      })
+    }
+    return res.status(500).json({
+      message: "Failed to like post!"
+    })
+  }
+}
+
+module.exports = { createPost, getAllPosts, findSpecPost, likePost };
+
