@@ -1,27 +1,26 @@
 const express = require("express")
-const cookieparser = require("cookie-parser")
+const cookieParser = require("cookie-parser")
+const cors = require("cors")
+
 const authRouter = require("./routes/auth.routes")
-
 const postRouter = require("./routes/post.routes")
-
 const userRouter = require("./routes/user.routes")
 
-
-
 const app = express()
+
+// FIRST: CORS
+app.use(cors({
+  origin: "http://localhost:5173",
+  credentials: true
+}))
+
+// THEN: Other middlewares
 app.use(express.json())
+app.use(cookieParser())
+
+// THEN: Routes
 app.use("/api/auth", authRouter)
-app.use(cookieparser())
 app.use("/api/post", postRouter)
-
-app.use('/api/users', userRouter)
-
-
-
-
-
-
-
-
+app.use("/api/users", userRouter)
 
 module.exports = app

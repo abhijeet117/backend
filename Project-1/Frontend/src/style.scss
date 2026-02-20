@@ -1,0 +1,65 @@
+@import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;700&display=swap");
+
+:root {
+  --font-base: "Plus Jakarta Sans", "Segoe UI", sans-serif;
+  --font-display: "Space Grotesk", "Segoe UI", sans-serif;
+
+  --ig-bg: #fff8f4;
+  --ig-surface: #ffffff;
+  --ig-surface-soft: #fff2ea;
+  --ig-text: #2d2437;
+  --ig-text-muted: #7a6b8c;
+  --ig-border: #f1dad0;
+
+  --ig-accent-pink: #f23a7e;
+  --ig-accent-orange: #ff7a3d;
+  --ig-accent-yellow: #ffd262;
+  --ig-accent-blue: #5a67ff;
+  --ig-gradient: linear-gradient(120deg, #ffd262 0%, #ff7a3d 30%, #f23a7e 62%, #5a67ff 100%);
+
+  --ig-shadow-soft: 0 8px 28px rgba(68, 33, 77, 0.08);
+  --ig-shadow-strong: 0 24px 56px rgba(68, 33, 77, 0.18);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+  width: 100%;
+}
+
+body {
+  background:
+    radial-gradient(circle at 12% 14%, rgba(255, 210, 98, 0.22), transparent 34%),
+    radial-gradient(circle at 88% 88%, rgba(242, 58, 126, 0.18), transparent 36%),
+    var(--ig-bg);
+  color: var(--ig-text);
+  font-family: var(--font-base);
+  line-height: 1.4;
+  text-rendering: optimizeLegibility;
+}
+
+a {
+  color: inherit;
+}
+
+/* Shared layout tokens for home and auth pages */
+.home-page {
+  min-height: 100vh;
+  padding: clamp(1.25rem, 2vw, 2.5rem);
+  color: var(--ig-text);
+}
+
+.home-page__hero {
+  background: var(--ig-surface);
+  border: 1px solid var(--ig-border);
+  border-radius: 1.25rem;
+  box-shadow: var(--ig-shadow-soft);
+  padding: clamp(1.2rem, 2vw, 2rem);
+}
