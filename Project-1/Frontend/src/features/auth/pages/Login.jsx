@@ -1,29 +1,25 @@
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
 import "../style/login.scss";
 import { useState } from "react";
-import axios from "axios";
+import { useAuth } from "../hooks/useAuth";
 
 const Login = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const { handleLogin, loading } = useAuth();
+  const navigate = useNavigate();
 
   async function handleSubmit(e) {
     e.preventDefault();
 
-    axios.post(
-        "http://localhost:3000/api/auth/login",
-        {
-          username,
-          password,
-        },
-        {
-          withCredentials: true,
-        },
-      )
-      .then((res) => {
-        console.log(res.data);
-      });
+    try {
+      await handleLogin(username, password);
+      navigate("/");
+    } catch (err) {
+      console.log(err);
+    }
   }
+
   return (
     <main className="auth-login">
       <section className="auth-login__shell">
@@ -36,18 +32,22 @@ const Login = () => {
           <h1>Login</h1>
           <form onSubmit={handleSubmit}>
             <input
-            onInput={(e)=>{setUsername(e.target.value)}}
+              onInput={(e) => {
+                setUsername(e.target.value);
+              }}
               className="username"
               placeholder="Enter Username"
               type="text"
             />
             <input
-            onInput={(e)=>{setPassword(e.target.value)}}
+              onInput={(e) => {
+                setPassword(e.target.value);
+              }}
               className="password"
               placeholder="Enter Password"
-              type="text"
+              type="password"
             />
-            <button>Login</button>
+            <button disabled={loading}>{loading ? "Logging in..." : "Login"}</button>
           </form>
 
           <p>

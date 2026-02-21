@@ -102,4 +102,19 @@ async function userLogin(req, res) {
 
 }
 
-module.exports = {userRegister , userLogin };
+async function getData(req, res) {
+  const userId = req.user.id
+
+  const user = await userModel.findById(userId)
+
+  res.status(200).json({
+    user : {
+      userName : user.userName,
+      email : user.email,
+      bio : user.bio,
+      profileImg : user.profileImg
+    }
+  })
+}
+
+module.exports = {userRegister , userLogin , getData };
