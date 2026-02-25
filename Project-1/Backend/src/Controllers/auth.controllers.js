@@ -134,4 +134,11 @@ async function getData(req, res) {
   })
 }
 
-module.exports = {userRegister , userLogin , getData };
+async function userLogout(req, res) {
+  res.clearCookie("token");
+  return res.status(200).json({
+    message: "Logged out successfully",
+  });
+}
+
+module.exports = {userRegister , userLogin , getData, userLogout };

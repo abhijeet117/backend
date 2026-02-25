@@ -1,6 +1,6 @@
 import { createContext, createElement, useCallback, useEffect, useMemo, useState } from "react";
 
-import { getData, register, login } from "./services/auth.api";
+import { getData, register, login, logout } from "./services/auth.api";
 
 export const AuthContext = createContext(null);
 
@@ -43,6 +43,19 @@ export function AuthProvider({ children }) {
     }
   }, []);
 
+  const handleLogout = useCallback(async () => {
+    setLoading(true);
+
+    try {
+      await logout();
+    } catch {
+      // Ignore logout API failure and clear local user state.
+    } finally {
+      setUser(null);
+      setLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
     refreshUser();
   }, [refreshUser]);
@@ -53,9 +66,10 @@ export function AuthProvider({ children }) {
       loading,
       handleLogin,
       handleRegister,
+      handleLogout,
       refreshUser,
     }),
-    [user, loading, handleLogin, handleRegister, refreshUser],
+    [user, loading, handleLogin, handleRegister, handleLogout, refreshUser],
   );
 
   return createElement(AuthContext.Provider, { value }, children);

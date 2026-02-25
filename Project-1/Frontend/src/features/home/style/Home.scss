@@ -1,0 +1,49 @@
+.home-simple {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  background: linear-gradient(135deg, #0a1526 0%, #102744 55%, #183c63 100%);
+}
+
+.home-simple__card {
+  width: 100%;
+  max-width: 420px;
+  padding: 28px 22px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  text-align: center;
+  color: #ffffff;
+}
+
+.home-simple__card h1 {
+  font-size: 1.6rem;
+  font-weight: 700;
+}
+
+.home-simple__actions {
+  margin-top: 16px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.home-simple__actions button {
+  border: 0;
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.home-simple__actions button:first-child {
+  background: #ffffff;
+  color: #0f2743;
+}
+
+.home-simple__actions button:last-child {
+  background: #2f88ff;
+  color: #ffffff;
+}

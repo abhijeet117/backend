@@ -14,8 +14,13 @@ const Register = () => {
     e.preventDefault();
 
     try {
-      await handleRegister(username, email, password);
-      navigate("/");
+      const response = await handleRegister(username, email, password);
+      const registeredUserName = response?.user?.userName;
+      if (registeredUserName) {
+        navigate(`/profile/${registeredUserName}/feed`);
+        return;
+      }
+      navigate("/feed");
     } catch (err) {
       console.log(err);
     }

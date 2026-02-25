@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useNavigate, useParams } from "react-router";
+import { useNavigate } from "react-router";
 
 import { useAuth } from "../../auth/hooks/useAuth";
 import BottomNav from "../components/BottomNav";
@@ -8,13 +8,12 @@ import FeedTopBar from "../components/FeedTopBar";
 import LikesModal from "../components/LikesModal";
 import StoriesBar from "../components/StoriesBar";
 import { usePost } from "../hooks/usePost";
-import "../style/Feed.scss";
+import "../style/feed.scss";
 
 const Feed = ({ scope = "following" }) => {
   const navigate = useNavigate();
-  const { username } = useParams();
   const { user } = useAuth();
-  const { loading, error, feed, stories, loadFeed, getPostById, toggleLike } = usePost();
+  const { loading, error, feed, stories, loadFeed, getPostById, toggleLike, addCommentToPost } = usePost();
   const [selectedLikePostId, setSelectedLikePostId] = useState(null);
 
   const currentUserName = user?.userName || "";
@@ -42,6 +41,11 @@ const Feed = ({ scope = "following" }) => {
     [toggleLike],
   );
 
+  const handleAddComment = useCallback(
+    (postId, text) => addCommentToPost(postId, text),
+    [addCommentToPost],
+  );
+
   const handleOpenProfile = useCallback(
     (userName) => {
       navigate(`/profile/${userName}`);
@@ -54,7 +58,6 @@ const Feed = ({ scope = "following" }) => {
       <div className="ig-phone-shell">
         <FeedTopBar />
         <section className="ig-scroll-area">
-          {isAllPostsFeed && username ? <p className="ig-loading">Showing all posts for {username}</p> : null}
           <StoriesBar stories={stories} />
           {error ? <p className="ig-error">{error}</p> : null}
           {loading && !feed.length ? <p className="ig-loading">Loading feed...</p> : null}
@@ -69,6 +72,7 @@ const Feed = ({ scope = "following" }) => {
                 onToggleLike={() => handleToggleLike(post.id)}
                 onOpenLikes={() => setSelectedLikePostId(post.id)}
                 onOpenProfile={handleOpenProfile}
+                onAddComment={(text) => handleAddComment(post.id, text)}
               />
             ))}
           </div>

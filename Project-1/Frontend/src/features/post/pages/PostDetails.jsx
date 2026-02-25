@@ -7,13 +7,13 @@ import FeedPostCard from "../components/FeedPostCard";
 import LikesModal from "../components/LikesModal";
 import { BackIcon } from "../components/icons";
 import { usePost } from "../hooks/usePost";
-import "../style/Feed.scss";
+import "../style/feed.scss";
 
 const PostDetails = () => {
   const { postId } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { loadPostDetails, getPostById, toggleLike } = usePost();
+  const { loadPostDetails, getPostById, toggleLike, addCommentToPost } = usePost();
 
   const [loading, setLoading] = useState(true);
   const [selectedLikePostId, setSelectedLikePostId] = useState(null);
@@ -45,6 +45,16 @@ const PostDetails = () => {
       toggleLike(postId);
     }
   }, [postId, toggleLike]);
+
+  const handleAddComment = useCallback(
+    (text) => {
+      if (!postId) {
+        return false;
+      }
+      return addCommentToPost(postId, text);
+    },
+    [addCommentToPost, postId],
+  );
 
   if (loading && !post) {
     return (
@@ -97,6 +107,7 @@ const PostDetails = () => {
             expanded
             currentUserName={currentUserName}
             onToggleLike={handleToggleLike}
+            onAddComment={handleAddComment}
             onOpenLikes={() => setSelectedLikePostId(post.id)}
             onOpenProfile={(userName) => navigate(`/profile/${userName}`)}
           />

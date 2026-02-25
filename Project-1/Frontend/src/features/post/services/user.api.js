@@ -19,3 +19,8 @@ export async function unfollowUser(username) {
   const response = await api.post(`/unfollow/${username}`);
   return response.data;
 }
+
+export async function updateProfile(payload) {
+  const response = await api.patch("/profile/edit", payload);
+  return response.data;
+}

@@ -1,5 +1,6 @@
 .ig-feed-page {
   min-height: 100vh;
+  height: 100vh;
   display: flex;
   justify-content: center;
   background: #fafafa;
@@ -10,6 +11,7 @@
   width: 100%;
   max-width: 430px;
   min-height: 100vh;
+  height: 100vh;
   background: #ffffff;
   border-left: 1px solid #dbdbdb;
   border-right: 1px solid #dbdbdb;
@@ -38,8 +40,15 @@
 
 .ig-scroll-area {
   flex: 1;
+  min-height: 0;
   overflow-y: auto;
   padding-bottom: 68px;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.ig-scroll-area::-webkit-scrollbar {
+  display: none;
 }
 
 .ig-bottom-nav {
@@ -151,6 +160,12 @@
   list-style: none;
   max-height: calc(70vh - 56px);
   overflow-y: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.ig-modal__list::-webkit-scrollbar {
+  display: none;
 }
 
 .ig-modal__item {
@@ -179,6 +194,8 @@
   }
 
   .ig-phone-shell {
+    min-height: calc(100vh - 28px);
+    height: calc(100vh - 28px);
     border-radius: 18px;
     overflow: hidden;
     box-shadow: 0 16px 40px rgba(0, 0, 0, 0.08);

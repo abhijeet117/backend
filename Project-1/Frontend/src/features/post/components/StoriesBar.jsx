@@ -1,4 +1,5 @@
 import "../style/Stories.scss";
+import { getDisplayName } from "../utils/post.utils";
 
 const StoriesBar = ({ stories = [] }) => {
   return (
@@ -10,7 +11,7 @@ const StoriesBar = ({ stories = [] }) => {
               <img src={story.profileImg} alt={story.userName} loading="lazy" />
               {story.isOwn ? <span className="ig-story__plus">+</span> : null}
             </span>
-            <span className="ig-story__name">{story.userName}</span>
+            <span className="ig-story__name">{story.isOwn ? story.userName : getDisplayName(story.userName)}</span>
           </button>
         ))}
       </div>

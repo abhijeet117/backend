@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router";
 
-import { ActivityIcon, HomeIcon, ProfileIcon, ReelsIcon, SearchIcon } from "./icons";
+import { ActivityIcon, CreateIcon, HomeIcon, ProfileIcon, SearchIcon } from "./icons";
 
 const BottomNav = ({ active = "home", currentUser }) => {
   const navigate = useNavigate();
@@ -24,11 +24,21 @@ const BottomNav = ({ active = "home", currentUser }) => {
       <button type="button" className="ig-bottom-nav__item" aria-label="Search">
         <SearchIcon className="ig-icon" />
       </button>
-      <button type="button" className="ig-bottom-nav__item" aria-label="Reels">
-        <ReelsIcon className="ig-icon" />
+      <button
+        type="button"
+        className={`ig-bottom-nav__item ${active === "create" ? "is-active" : ""}`}
+        aria-label="Create post"
+        onClick={() => navigate("/create")}
+      >
+        <CreateIcon className="ig-icon" />
       </button>
-      <button type="button" className="ig-bottom-nav__item" aria-label="Activity">
-        <ActivityIcon className="ig-icon" />
+      <button
+        type="button"
+        className={`ig-bottom-nav__item ${active === "activity" ? "is-active" : ""}`}
+        aria-label="Liked posts"
+        onClick={() => navigate("/likes")}
+      >
+        <ActivityIcon className="ig-icon" filled={active === "activity"} />
       </button>
       <button
         type="button"

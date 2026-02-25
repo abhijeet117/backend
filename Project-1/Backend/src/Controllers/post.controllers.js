@@ -7,9 +7,21 @@ const userModel = require("../models/user.model");
 const likeModel = require("../models/likes.model");
 const followerModel = require("../models/follower.model");
 
-const imagekit = new ImageKit({
-  privateKey: process.env.IMAGEKIT_PRIVATE_KEY,
-});
+let imagekitClient = null;
+
+function getImagekitClient() {
+  if (imagekitClient) {
+    return imagekitClient;
+  }
+
+  const privateKey = process.env.IMAGEKIT_PRIVATE_KEY;
+  if (!privateKey) {
+    return null;
+  }
+
+  imagekitClient = new ImageKit({ privateKey });
+  return imagekitClient;
+}
 
 async function buildLikeMap(postIds) {
   if (!postIds.length) {
@@ -54,6 +66,16 @@ function isValidPostId(postId) {
   return Boolean(postId) && mongoose.Types.ObjectId.isValid(postId);
 }
 
+async function getSerializedPost(postId, viewerUserName) {
+  const post = await postModel.findById(postId).populate("user", "userName profileImg bio");
+  if (!post) {
+    return null;
+  }
+
+  const likeMap = await buildLikeMap([post._id]);
+  return serializePost(post, likeMap, viewerUserName);
+}
+
 async function createPost(req, res) {
   const userId = req.user.id;
 
@@ -63,11 +85,25 @@ async function createPost(req, res) {
     });
   }
 
-  const file = await imagekit.files.upload({
-    file: await toFile(Buffer.from(req.file.buffer), "file"),
-    fileName: "image",
-    folder: "Cohort-2-insta-clone",
-  });
+  const imagekit = getImagekitClient();
+  if (!imagekit) {
+    return res.status(503).json({
+      message: "Image upload service is not configured",
+    });
+  }
+
+  let file;
+  try {
+    file = await imagekit.files.upload({
+      file: await toFile(Buffer.from(req.file.buffer), "file"),
+      fileName: "image",
+      folder: "Cohort-2-insta-clone",
+    });
+  } catch {
+    return res.status(502).json({
+      message: "Failed to upload image",
+    });
+  }
 
   const post = await postModel.create({
     caption: req.body.caption || req.body.title || req.body.tittle || "",
@@ -263,6 +299,57 @@ async function getPostLikes(req, res) {
   });
 }
 
+async function addComment(req, res) {
+  const { postId } = req.params;
+  if (!isValidPostId(postId)) {
+    return res.status(400).json({
+      message: "Invalid post id!",
+    });
+  }
+
+  const text = String(req.body?.text || req.body?.comment || "").trim();
+  if (!text) {
+    return res.status(400).json({
+      message: "Comment text is required!",
+    });
+  }
+
+  if (text.length > 500) {
+    return res.status(400).json({
+      message: "Comment must be 500 characters or less",
+    });
+  }
+
+  const viewer = await resolveViewer(req);
+  if (!viewer) {
+    return res.status(401).json({
+      message: "Invalid user!",
+    });
+  }
+
+  const post = await postModel.findById(postId).select("_id comments");
+  if (!post) {
+    return res.status(404).json({
+      message: "Post not found!",
+    });
+  }
+
+  post.comments.push({
+    userName: viewer.userName,
+    text,
+  });
+
+  await post.save();
+  const addedComment = post.comments[post.comments.length - 1];
+  const enrichedPost = await getSerializedPost(postId, viewer.userName);
+
+  return res.status(201).json({
+    message: "Comment added successfully",
+    comment: addedComment,
+    post: enrichedPost,
+  });
+}
+
 async function userFeed(req, res) {
   const viewer = await resolveViewer(req);
   if (!viewer) {
@@ -322,6 +409,50 @@ async function allPostsFeed(req, res) {
   });
 }
 
+async function likedPostsFeed(req, res) {
+  const viewer = await resolveViewer(req);
+  if (!viewer) {
+    return res.status(401).json({
+      message: "Invalid user!",
+    });
+  }
+
+  const likedRows = await likeModel
+    .find({ user: viewer.userName })
+    .sort({ createdAt: -1 })
+    .select("post");
+
+  const likedPostIds = likedRows.map((row) => row.post).filter(Boolean);
+  if (!likedPostIds.length) {
+    return res.status(200).json({
+      message: "Success",
+      posts: [],
+    });
+  }
+
+  const posts = await postModel
+    .find({ _id: { $in: likedPostIds } })
+    .populate("user", "userName profileImg bio");
+
+  const likedOrderMap = new Map(
+    likedPostIds.map((postId, index) => [postId.toString(), index]),
+  );
+
+  posts.sort(
+    (left, right) =>
+      likedOrderMap.get(left._id.toString()) -
+      likedOrderMap.get(right._id.toString()),
+  );
+
+  const likeMap = await buildLikeMap(posts.map((post) => post._id));
+  const enrichedPosts = posts.map((post) => serializePost(post, likeMap, viewer.userName));
+
+  return res.status(200).json({
+    message: "Success",
+    posts: enrichedPosts,
+  });
+}
+
 module.exports = {
   createPost,
   getAllPosts,
@@ -330,6 +461,8 @@ module.exports = {
   unlikePost,
   toggleLike,
   getPostLikes,
+  addComment,
   userFeed,
   allPostsFeed,
+  likedPostsFeed,
 };

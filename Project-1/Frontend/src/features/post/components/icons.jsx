@@ -42,6 +42,15 @@ export function ReelsIcon(props) {
   );
 }
 
+export function CreateIcon(props) {
+  return (
+    <Icon {...props}>
+      <rect x="3.5" y="3.5" width="17" height="17" rx="4" />
+      <path d="M12 8v8M8 12h8" />
+    </Icon>
+  );
+}
+
 export function ActivityIcon(props) {
   return (
     <Icon {...props}>

@@ -9,8 +9,10 @@ const {
   unlikePost,
   toggleLike,
   getPostLikes,
+  addComment,
   userFeed,
-  allPostsFeed
+  allPostsFeed,
+  likedPostsFeed
 } = require("../Controllers/post.controllers")
 
 const multer  = require('multer')
@@ -27,10 +29,12 @@ postRouter.get("/details/:postId" , isValidUser , findSpecPost)
 postRouter.post("/like/:postId",isValidUser, likePost )
 postRouter.delete("/unlike/:postId", isValidUser, unlikePost)
 postRouter.post("/like-toggle/:postId", isValidUser, toggleLike)
+postRouter.post("/comment/:postId", isValidUser, addComment)
 postRouter.get("/likes/:postId", isValidUser, getPostLikes)
 
 postRouter.get("/feed", isValidUser, userFeed)
 postRouter.get("/all-feed", isValidUser, allPostsFeed)
+postRouter.get("/liked", isValidUser, likedPostsFeed)
 
 
 

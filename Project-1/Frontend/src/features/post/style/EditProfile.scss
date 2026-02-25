@@ -1,0 +1,57 @@
+@use "./feed.scss";
+
+.ig-edit-profile {
+  padding: 16px;
+}
+
+.ig-edit-profile__form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.ig-edit-profile__avatar {
+  width: 92px;
+  height: 92px;
+  border-radius: 50%;
+  border: 1px solid #dedede;
+  object-fit: cover;
+  margin: 0 auto 6px;
+}
+
+.ig-edit-profile__form label {
+  font-size: 0.83rem;
+  color: #6f6f6f;
+  font-weight: 600;
+}
+
+.ig-edit-profile__form input,
+.ig-edit-profile__form textarea {
+  border: 1px solid #dbdbdb;
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 0.92rem;
+  background: #fff;
+}
+
+.ig-edit-profile__form textarea {
+  resize: vertical;
+  min-height: 92px;
+}
+
+.ig-edit-profile__form button {
+  margin-top: 8px;
+  border: 0;
+  border-radius: 10px;
+  padding: 10px;
+  font-size: 0.92rem;
+  font-weight: 600;
+  background: #0095f6;
+  color: #fff;
+  cursor: pointer;
+}
+
+.ig-edit-profile__form button:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}

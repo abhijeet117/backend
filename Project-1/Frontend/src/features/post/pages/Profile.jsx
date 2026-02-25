@@ -6,7 +6,7 @@ import BottomNav from "../components/BottomNav";
 import FeedPostCard from "../components/FeedPostCard";
 import LikesModal from "../components/LikesModal";
 import { BackIcon } from "../components/icons";
-import { likePost, unlikePost } from "../services/post.api";
+import { addComment, likePost, unlikePost } from "../services/post.api";
 import { followUser, getProfile, unfollowUser } from "../services/user.api";
 import { normalizePost, uniqueUsers } from "../utils/post.utils";
 import "../style/Profile.scss";
@@ -14,7 +14,8 @@ import "../style/Profile.scss";
 const Profile = () => {
   const { username } = useParams();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, handleLogout, loading: authLoading } = useAuth();
+  const viewerUserName = user?.userName || "";
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -82,7 +83,7 @@ const Profile = () => {
 
   const handleToggleLike = useCallback(
     async (postId) => {
-      if (!user?.userName) {
+      if (!viewerUserName) {
         return;
       }
 
@@ -91,7 +92,7 @@ const Profile = () => {
         return;
       }
 
-      const alreadyLiked = currentPost.likedBy.includes(user.userName);
+      const alreadyLiked = currentPost.likedBy.includes(viewerUserName);
       setPosts((prev) =>
         prev.map((post) =>
           post.id !== postId
@@ -99,8 +100,8 @@ const Profile = () => {
             : {
                 ...post,
                 likedBy: alreadyLiked
-                  ? post.likedBy.filter((name) => name !== user.userName)
-                  : uniqueUsers([user.userName, ...post.likedBy]),
+                  ? post.likedBy.filter((name) => name !== viewerUserName)
+                  : uniqueUsers([viewerUserName, ...post.likedBy]),
               },
         ),
       );
@@ -126,17 +127,85 @@ const Profile = () => {
             post.id !== postId
               ? post
               : {
-                  ...post,
-                  likedBy: alreadyLiked
-                    ? uniqueUsers([user.userName, ...post.likedBy])
-                    : post.likedBy.filter((name) => name !== user.userName),
+                ...post,
+                likedBy: alreadyLiked
+                    ? uniqueUsers([viewerUserName, ...post.likedBy])
+                    : post.likedBy.filter((name) => name !== viewerUserName),
                 },
           ),
         );
       }
     },
-    [posts, user?.userName],
+    [posts, viewerUserName],
   );
+
+  const handleAddComment = useCallback(async (postId, text) => {
+    if (!viewerUserName) {
+      return false;
+    }
+
+    const trimmedText = String(text || "").trim();
+    if (!trimmedText) {
+      return false;
+    }
+
+    try {
+      const response = await addComment(postId, trimmedText);
+
+      if (response?.post) {
+        const normalized = normalizePost(response.post);
+        if (normalized?.id) {
+          setPosts((prev) =>
+            prev.map((post) =>
+              post.id === postId
+                ? {
+                    ...post,
+                    ...normalized,
+                  }
+                : post,
+            ),
+          );
+          return true;
+        }
+      }
+
+      if (response?.comment) {
+        const normalizedComment = {
+          id: response.comment._id || response.comment.id || `comment-${Date.now()}`,
+          userName: response.comment.userName || viewerUserName,
+          text: response.comment.text || trimmedText,
+        };
+        setPosts((prev) =>
+          prev.map((post) =>
+            post.id === postId
+              ? {
+                  ...post,
+                  comments: [...post.comments, normalizedComment],
+                }
+              : post,
+          ),
+        );
+        return true;
+      }
+
+      return false;
+    } catch (err) {
+      setError(err?.response?.data?.message || "Failed to add comment");
+      return false;
+    }
+  }, [viewerUserName]);
+
+  const handleLogoutClick = useCallback(async () => {
+    await handleLogout();
+    navigate("/login");
+  }, [handleLogout, navigate]);
+
+  const handleEditProfile = useCallback(() => {
+    if (!profile?.userName) {
+      return;
+    }
+    navigate(`/profile/${profile.userName}/edit`);
+  }, [navigate, profile?.userName]);
 
   return (
     <main className="ig-feed-page">
@@ -162,14 +231,22 @@ const Profile = () => {
                     <strong>{posts.length}</strong>
                     <span>posts</span>
                   </div>
-                  <div>
+                  <button
+                    type="button"
+                    className="ig-profile__stat-btn"
+                    onClick={() => navigate(`/profile/${profile.userName}/followers`)}
+                  >
                     <strong>{profile.followersCount}</strong>
                     <span>followers</span>
-                  </div>
-                  <div>
+                  </button>
+                  <button
+                    type="button"
+                    className="ig-profile__stat-btn"
+                    onClick={() => navigate(`/profile/${profile.userName}/following`)}
+                  >
                     <strong>{profile.followingCount}</strong>
                     <span>following</span>
-                  </div>
+                  </button>
                 </div>
               </div>
 
@@ -180,7 +257,21 @@ const Profile = () => {
                   <button type="button" className="ig-profile__follow-btn" disabled={followBusy} onClick={handleFollowToggle}>
                     {profile.isFollowing ? "Following" : "Follow"}
                   </button>
-                ) : null}
+                ) : (
+                  <>
+                    <button type="button" className="ig-profile__edit-btn" onClick={handleEditProfile}>
+                      Edit profile
+                    </button>
+                    <button
+                      type="button"
+                      className="ig-profile__logout-btn"
+                      onClick={handleLogoutClick}
+                      disabled={authLoading}
+                    >
+                      {authLoading ? "Logging out..." : "Logout"}
+                    </button>
+                  </>
+                )}
               </div>
 
               <div className="ig-post-list">
@@ -188,11 +279,13 @@ const Profile = () => {
                   <FeedPostCard
                     key={post.id}
                     post={post}
-                    currentUserName={user?.userName || ""}
+                    currentUserName={viewerUserName}
+                    nameMode="username"
                     onToggleLike={() => handleToggleLike(post.id)}
                     onOpenPost={(postId) => navigate(`/post/${postId}`)}
                     onOpenLikes={() => setSelectedLikePostId(post.id)}
                     onOpenProfile={(name) => navigate(`/profile/${name}`)}
+                    onAddComment={(text) => handleAddComment(post.id, text)}
                   />
                 ))}
               </div>

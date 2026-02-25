@@ -1,7 +1,8 @@
 import { memo, useMemo } from "react";
 
-import { formatCount, formatPostTime } from "../utils/post.utils";
+import { formatCount, formatPostTime, getDisplayName } from "../utils/post.utils";
 import { BookmarkIcon, CommentIcon, HeartIcon, MoreIcon, ShareIcon } from "./icons";
+import PostCommentComposer from "./PostCommentComposer";
 import "../style/Post.scss";
 
 const FeedPostCard = ({
@@ -12,20 +13,27 @@ const FeedPostCard = ({
   onOpenPost,
   onOpenLikes,
   onOpenProfile,
+  onAddComment,
+  nameMode = "display",
 }) => {
   const isLiked = post.likedBy.includes(currentUserName);
   const commentsToShow = expanded ? post.comments : post.comments.slice(0, 2);
+  const authorLabel = nameMode === "username"
+    ? post.user.userName
+    : getDisplayName(post.user.userName);
 
   const likedByLine = useMemo(() => {
     if (!post.likedBy.length) {
       return "Be the first to like this";
     }
 
+    const firstLikeDisplayName = getDisplayName(post.likedBy[0]);
+
     if (post.likedBy.length === 1) {
-      return `Liked by ${post.likedBy[0]}`;
+      return `Liked by ${firstLikeDisplayName}`;
     }
 
-    return `Liked by ${post.likedBy[0]} and ${formatCount(post.likedBy.length - 1)} others`;
+    return `Liked by ${firstLikeDisplayName} and ${formatCount(post.likedBy.length - 1)} others`;
   }, [post.likedBy]);
 
   return (
@@ -35,7 +43,7 @@ const FeedPostCard = ({
           <img src={post.user.profileImg} alt={post.user.userName} loading="lazy" />
           <div>
             <button type="button" className="ig-link-btn ig-post__username-btn" onClick={() => onOpenProfile?.(post.user.userName)}>
-              <p className="ig-post__username">{post.user.userName}</p>
+              <p className="ig-post__username">{authorLabel}</p>
             </button>
             {post.user.location ? <p className="ig-post__location">{post.user.location}</p> : null}
           </div>
@@ -85,7 +93,7 @@ const FeedPostCard = ({
         </button>
         <p className="ig-post__caption">
           <button type="button" className="ig-link-btn ig-post__caption-user" onClick={() => onOpenProfile?.(post.user.userName)}>
-            <strong>{post.user.userName}</strong>
+            <strong>{authorLabel}</strong>
           </button>{" "}
           {post.caption}
         </p>
@@ -99,10 +107,11 @@ const FeedPostCard = ({
         <div className="ig-post__comments">
           {commentsToShow.map((comment) => (
             <p key={comment.id} className="ig-post__comment">
-              <strong>{comment.userName}</strong> {comment.text}
+              <strong>{nameMode === "username" ? comment.userName : getDisplayName(comment.userName)}</strong> {comment.text}
             </p>
           ))}
         </div>
+        <PostCommentComposer onAddComment={onAddComment} />
         <time className="ig-post__time">{formatPostTime(post.createdAt).toUpperCase()} AGO</time>
       </div>
     </article>

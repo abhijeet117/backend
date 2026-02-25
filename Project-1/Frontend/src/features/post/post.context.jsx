@@ -2,18 +2,29 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { useAuth } from "../auth/hooks/useAuth";
 import { PostContext } from "./post.contextValue";
-import { getAllFeed, getFeed, getPostDetails, likePost, unlikePost } from "./services/post.api";
+import { addComment, getAllFeed, getFeed, getPostDetails, likePost, unlikePost } from "./services/post.api";
+import { getFollowingList } from "./services/user.network.api";
 import { buildStoriesFromPosts, normalizeFeedResponse, normalizePost, uniqueUsers } from "./utils/post.utils";
 
 function updatePostInFeed(posts, postId, updater) {
   return posts.map((post) => (post.id === postId ? updater(post) : post));
 }
 
+function normalizeSingleComment(comment, fallbackId) {
+  return {
+    id: comment?._id || comment?.id || fallbackId,
+    userName: comment?.userName || "",
+    text: comment?.text || "",
+  };
+}
+
 export function PostProvider({ children }) {
   const { user } = useAuth();
+  const viewerUserName = user?.userName || "";
   const [loading, setLoading] = useState(false);
   const [feed, setFeed] = useState([]);
   const [stories, setStories] = useState([]);
+  const [followingUserNames, setFollowingUserNames] = useState([]);
   const [error, setError] = useState("");
 
   const getPostById = useCallback(
@@ -70,7 +81,7 @@ export function PostProvider({ children }) {
   );
 
   const toggleLike = useCallback(async (postId) => {
-    if (!user?.userName) {
+    if (!viewerUserName) {
       return;
     }
 
@@ -79,13 +90,13 @@ export function PostProvider({ children }) {
       return;
     }
 
-    const alreadyLiked = currentPost.likedBy.includes(user.userName);
+    const alreadyLiked = currentPost.likedBy.includes(viewerUserName);
 
     setFeed((prev) =>
       updatePostInFeed(prev, postId, (post) => {
         const likedBy = alreadyLiked
-          ? post.likedBy.filter((name) => name !== user.userName)
-          : uniqueUsers([user.userName, ...post.likedBy]);
+          ? post.likedBy.filter((name) => name !== viewerUserName)
+          : uniqueUsers([viewerUserName, ...post.likedBy]);
 
         return {
           ...post,
@@ -113,17 +124,115 @@ export function PostProvider({ children }) {
         updatePostInFeed(prev, postId, (post) => ({
           ...post,
           likedBy: alreadyLiked
-            ? uniqueUsers([user.userName, ...post.likedBy])
-            : post.likedBy.filter((name) => name !== user.userName),
+            ? uniqueUsers([viewerUserName, ...post.likedBy])
+            : post.likedBy.filter((name) => name !== viewerUserName),
           isLikedByViewer: alreadyLiked,
         })),
       );
     }
-  }, [feed, user?.userName]);
+  }, [feed, viewerUserName]);
+
+  const addCommentToPost = useCallback(async (postId, text) => {
+    if (!viewerUserName) {
+      return false;
+    }
+
+    const trimmedText = String(text || "").trim();
+    if (!trimmedText) {
+      return false;
+    }
+
+    const tempComment = {
+      id: `temp-${postId}-${Date.now()}`,
+      userName: viewerUserName,
+      text: trimmedText,
+    };
+
+    setFeed((prev) =>
+      updatePostInFeed(prev, postId, (post) => ({
+        ...post,
+        comments: [...post.comments, tempComment],
+      })),
+    );
+
+    try {
+      const response = await addComment(postId, trimmedText);
+
+      if (response?.post) {
+        const normalizedPost = normalizePost(response.post);
+        if (normalizedPost?.id) {
+          setFeed((prev) =>
+            updatePostInFeed(prev, postId, (post) => ({
+              ...post,
+              ...normalizedPost,
+            })),
+          );
+          return true;
+        }
+      }
+
+      if (response?.comment) {
+        const normalizedComment = normalizeSingleComment(
+          response.comment,
+          `comment-${Date.now()}`,
+        );
+        setFeed((prev) =>
+          updatePostInFeed(prev, postId, (post) => ({
+            ...post,
+            comments: [
+              ...post.comments.filter((comment) => comment.id !== tempComment.id),
+              normalizedComment,
+            ],
+          })),
+        );
+        return true;
+      }
+
+      return true;
+    } catch {
+      setFeed((prev) =>
+        updatePostInFeed(prev, postId, (post) => ({
+          ...post,
+          comments: post.comments.filter((comment) => comment.id !== tempComment.id),
+        })),
+      );
+      return false;
+    }
+  }, [viewerUserName]);
 
   useEffect(() => {
-    setStories(buildStoriesFromPosts(feed, user));
-  }, [feed, user]);
+    let mounted = true;
+
+    async function loadFollowingUsers() {
+      if (!viewerUserName) {
+        setFollowingUserNames([]);
+        return;
+      }
+
+      try {
+        const response = await getFollowingList(viewerUserName);
+        const following = Array.isArray(response?.following) ? response.following : [];
+        const names = following.map((entry) => entry.userName).filter(Boolean);
+        if (mounted) {
+          setFollowingUserNames(names);
+        }
+      } catch {
+        if (mounted) {
+          setFollowingUserNames([]);
+        }
+      }
+    }
+
+    loadFollowingUsers();
+
+    return () => {
+      mounted = false;
+    };
+  }, [viewerUserName]);
+
+  useEffect(() => {
+    setStories(buildStoriesFromPosts(feed, user, followingUserNames));
+  }, [feed, user, followingUserNames]);
 
   const value = useMemo(
     () => ({
@@ -135,8 +244,9 @@ export function PostProvider({ children }) {
       loadPostDetails,
       getPostById,
       toggleLike,
+      addCommentToPost,
     }),
-    [loading, error, feed, stories, loadFeed, loadPostDetails, getPostById, toggleLike],
+    [loading, error, feed, stories, loadFeed, loadPostDetails, getPostById, toggleLike, addCommentToPost],
   );
 
   return <PostContext.Provider value={value}>{children}</PostContext.Provider>;

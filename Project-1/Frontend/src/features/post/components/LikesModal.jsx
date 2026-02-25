@@ -1,4 +1,4 @@
-import { formatCount } from "../utils/post.utils";
+import { formatCount, getDisplayName } from "../utils/post.utils";
 
 function initialFromName(name) {
   return (name || "U").slice(0, 1).toUpperCase();
@@ -22,7 +22,7 @@ const LikesModal = ({ post, onClose }) => {
           {post.likedBy.map((name) => (
             <li key={`${post.id}-${name}`} className="ig-modal__item">
               <span className="ig-modal__avatar">{initialFromName(name)}</span>
-              <span>{name}</span>
+              <span>{getDisplayName(name)}</span>
             </li>
           ))}
         </ul>

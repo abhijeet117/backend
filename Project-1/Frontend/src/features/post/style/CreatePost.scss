@@ -1,0 +1,55 @@
+@use "./feed.scss";
+
+.ig-create-post {
+  padding: 16px;
+}
+
+.ig-create-form {
+  display: grid;
+  gap: 14px;
+}
+
+.ig-create-form__field {
+  display: grid;
+  gap: 8px;
+  font-size: 0.9rem;
+  color: #262626;
+}
+
+.ig-create-form__field input[type="file"] {
+  border: 1px solid #dbdbdb;
+  border-radius: 10px;
+  padding: 10px;
+  background: #fff;
+}
+
+.ig-create-form__field textarea {
+  border: 1px solid #dbdbdb;
+  border-radius: 10px;
+  padding: 10px;
+  resize: vertical;
+  min-height: 100px;
+}
+
+.ig-create-form__preview {
+  width: 100%;
+  border-radius: 14px;
+  border: 1px solid #efefef;
+  object-fit: cover;
+  max-height: 420px;
+}
+
+.ig-create-form__submit {
+  border: 0;
+  border-radius: 10px;
+  padding: 10px 14px;
+  background: #0095f6;
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.ig-create-form__submit:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}

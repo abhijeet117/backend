@@ -5,6 +5,33 @@ export function uniqueUsers(users = []) {
   return [...new Set((users || []).filter(Boolean))];
 }
 
+function capitalizeWord(value) {
+  if (!value) {
+    return "";
+  }
+  return value.charAt(0).toUpperCase() + value.slice(1).toLowerCase();
+}
+
+export function getDisplayName(userName = "") {
+  const raw = String(userName || "").trim();
+  if (!raw) {
+    return "";
+  }
+
+  const localPart = raw.split("@")[0];
+  const splitParts = localPart.split(/[_.]+/).filter(Boolean);
+
+  if (splitParts.length > 1) {
+    const readableParts = splitParts.filter((part) => !/^\d+$/.test(part));
+    if (!readableParts.length) {
+      return localPart;
+    }
+    return readableParts.map(capitalizeWord).join(" ");
+  }
+
+  return localPart.charAt(0).toUpperCase() + localPart.slice(1);
+}
+
 function normalizeComment(comment, postId, index) {
   if (typeof comment === "string") {
     return {
@@ -21,7 +48,7 @@ function normalizeComment(comment, postId, index) {
   };
 }
 
-export function normalizePost(post, index = 0) {
+export function normalizePost(post) {
   const id = post?._id || post?.id;
   if (!id) {
     return null;
@@ -81,8 +108,13 @@ export function formatPostTime(dateValue) {
   return `${diffYears}y`;
 }
 
-export function buildStoriesFromPosts(posts, currentUser) {
-  const postStories = posts.map((post) => ({
+export function buildStoriesFromPosts(posts, currentUser, followingUserNames = []) {
+  const followingSet = new Set((followingUserNames || []).filter(Boolean));
+  const filteredPosts = followingSet.size
+    ? posts.filter((post) => followingSet.has(post?.user?.userName))
+    : [];
+
+  const postStories = filteredPosts.map((post) => ({
     id: `story-${post.id}`,
     userName: post.user.userName,
     profileImg: post.user.profileImg || DEFAULT_PROFILE,

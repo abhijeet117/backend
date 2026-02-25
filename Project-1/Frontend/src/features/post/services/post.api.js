@@ -15,6 +15,11 @@ export async function getAllFeed() {
     return response.data
 }
 
+export async function getLikedPosts() {
+    const response = await api.get('/liked')
+    return response.data
+}
+
 export async function getPostDetails(postId) {
     const response = await api.get(`/details/${postId}`)
     return response.data
@@ -27,6 +32,11 @@ export async function likePost(postId) {
 
 export async function unlikePost(postId) {
     const response = await api.delete(`/unlike/${postId}`)
+    return response.data
+}
+
+export async function addComment(postId, text) {
+    const response = await api.post(`/comment/${postId}`, { text })
     return response.data
 }
 
