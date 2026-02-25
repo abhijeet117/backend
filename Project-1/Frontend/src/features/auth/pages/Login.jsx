@@ -36,7 +36,7 @@ const Login = () => {
                 setUsername(e.target.value);
               }}
               className="username"
-              placeholder="Enter Username"
+              placeholder="Enter Username or Email"
               type="text"
             />
             <input

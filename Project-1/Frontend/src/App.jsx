@@ -1,14 +1,15 @@
 import AppRoutes from "./AppRoutes";
 import "../src/style.scss";
 import { AuthProvider } from "./features/auth/auth.context";
+import { PostProvider } from "./features/post/post.context";
 
 const App = () => {
   return (
-    <>
-      <AuthProvider>
+    <AuthProvider>
+      <PostProvider>
         <AppRoutes />
-      </AuthProvider>
-    </>
+      </PostProvider>
+    </AuthProvider>
   );
 };
 

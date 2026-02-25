@@ -4,18 +4,17 @@ const jwt = require('jsonwebtoken')
 
 
 async function userRegister(req, res) {
-  const { userName, email, password, bio, profileImg } = req.body;
+  const { email, password, bio, profileImg } = req.body;
+  const userName = req.body.userName || req.body.username;
 
   const alreadyExits = await userModel.findOne({
     $or: [{ userName }, { email }],
   });
 
   if (alreadyExits) {
+    const duplicateField = alreadyExits.email === email ? "email already exist" : "userName already exist";
     return res.status(409).json({
-      message:
-        "User already exists" + alreadyExits === email
-          ? "email already exist"
-          : "userName already exist",
+      message: `User already exists: ${duplicateField}`,
     });
   }
 
@@ -49,7 +48,8 @@ async function userRegister(req, res) {
 }
 
 async function userLogin(req, res) {
-  const {email , userName , password} = req.body
+  const {email , password} = req.body
+  const userName = req.body.userName || req.body.username
 
   const user = await userModel.findOne({
     $or : [

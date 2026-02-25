@@ -8,11 +8,29 @@ const userRouter = require("./routes/user.routes")
 
 const app = express()
 
+const allowedOrigins = [
+  "http://localhost:5173",
+  "http://localhost:5174",
+  "http://127.0.0.1:5173",
+  "http://127.0.0.1:5174",
+]
+
+function isLocalDevOrigin(origin) {
+  return /^http:\/\/localhost:\d+$/.test(origin) || /^http:\/\/127\.0\.0\.1:\d+$/.test(origin)
+}
+
+const corsOptions = {
+  origin(origin, callback) {
+    if (!origin || allowedOrigins.includes(origin) || isLocalDevOrigin(origin)) {
+      return callback(null, true)
+    }
+    return callback(new Error("CORS origin not allowed"))
+  },
+  credentials: true,
+}
+
 // FIRST: CORS
-app.use(cors({
-  origin: "http://localhost:5173",
-  credentials: true
-}))
+app.use(cors(corsOptions))
 
 // THEN: Other middlewares
 app.use(express.json())
