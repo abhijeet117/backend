@@ -13,7 +13,12 @@ const Login = () => {
     e.preventDefault();
 
     try {
-      await handleLogin(username, password);
+      const response = await handleLogin(username, password);
+      const loggedInUserName = response?.user?.userName;
+      if (loggedInUserName) {
+        navigate(`/profile/${loggedInUserName}/feed`);
+        return;
+      }
       navigate("/");
     } catch (err) {
       console.log(err);

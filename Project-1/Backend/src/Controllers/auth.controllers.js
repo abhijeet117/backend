@@ -7,6 +7,12 @@ async function userRegister(req, res) {
   const { email, password, bio, profileImg } = req.body;
   const userName = req.body.userName || req.body.username;
 
+  if (!userName || !email || !password) {
+    return res.status(400).json({
+      message: "userName, email and password are required!",
+    })
+  }
+
   const alreadyExits = await userModel.findOne({
     $or: [{ userName }, { email }],
   });
@@ -51,6 +57,12 @@ async function userLogin(req, res) {
   const {email , password} = req.body
   const userName = req.body.userName || req.body.username
 
+  if ((!email && !userName) || !password) {
+    return res.status(400).json({
+      message: "Provide userName/email and password",
+    })
+  }
+
   const user = await userModel.findOne({
     $or : [
       {
@@ -60,7 +72,7 @@ async function userLogin(req, res) {
         email : email
       }
     ]
-  })
+  }).select("+password userName email bio profileImg")
 
   if(!user) {
     return res.status(404).json({
@@ -106,6 +118,11 @@ async function getData(req, res) {
   const userId = req.user.id
 
   const user = await userModel.findById(userId)
+  if (!user) {
+    return res.status(404).json({
+      message: "User not found!",
+    })
+  }
 
   res.status(200).json({
     user : {

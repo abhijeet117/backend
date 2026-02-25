@@ -1,4 +1,5 @@
 import { DmIcon } from "./icons";
+import "../style/Header.scss";
 
 const FeedTopBar = () => {
   return (

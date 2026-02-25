@@ -1,62 +1,38 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 
-import { mockFeedPosts } from "./data/mockFeed";
+import { useAuth } from "../auth/hooks/useAuth";
 import { PostContext } from "./post.contextValue";
-import { getFeed, getPostDetails, toggleLike as toggleLikePost } from "./services/post.api";
+import { getAllFeed, getFeed, getPostDetails, likePost, unlikePost } from "./services/post.api";
 import { buildStoriesFromPosts, normalizeFeedResponse, normalizePost, uniqueUsers } from "./utils/post.utils";
-
-const LIKE_STORE_KEY = "ig_like_state_v1";
-
-function readStoredLikes() {
-  try {
-    const parsed = JSON.parse(localStorage.getItem(LIKE_STORE_KEY) || "{}");
-    return typeof parsed === "object" && parsed ? parsed : {};
-  } catch {
-    return {};
-  }
-}
-
-function mergeStoredLikes(posts, storedLikes) {
-  return posts.map((post) => {
-    const users = storedLikes[post.id];
-    if (!Array.isArray(users)) {
-      return post;
-    }
-    return {
-      ...post,
-      likedBy: uniqueUsers(users),
-    };
-  });
-}
 
 function updatePostInFeed(posts, postId, updater) {
   return posts.map((post) => (post.id === postId ? updater(post) : post));
 }
 
 export function PostProvider({ children }) {
+  const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [feed, setFeed] = useState([]);
   const [stories, setStories] = useState([]);
+  const [error, setError] = useState("");
 
   const getPostById = useCallback(
     (postId) => feed.find((post) => post.id === postId) || null,
     [feed],
   );
 
-  const loadFeed = useCallback(async () => {
+  const loadFeed = useCallback(async (scope = "following") => {
     setLoading(true);
+    setError("");
 
     try {
-      const response = await getFeed();
+      const response = scope === "all" ? await getAllFeed() : await getFeed();
       const normalizedFeed = normalizeFeedResponse(response);
-      const baseFeed = normalizedFeed.length ? normalizedFeed : mockFeedPosts;
-      const mergedFeed = mergeStoredLikes(baseFeed, readStoredLikes());
-      setFeed(mergedFeed);
-      setStories(buildStoriesFromPosts(mergedFeed));
-    } catch {
-      const mergedFeed = mergeStoredLikes(mockFeedPosts, readStoredLikes());
-      setFeed(mergedFeed);
-      setStories(buildStoriesFromPosts(mergedFeed));
+      setFeed(normalizedFeed);
+    } catch (err) {
+      const message = err?.response?.data?.message || "Failed to load feed";
+      setError(message);
+      setFeed([]);
     } finally {
       setLoading(false);
     }
@@ -69,6 +45,9 @@ export function PostProvider({ children }) {
       try {
         const response = await getPostDetails(postId);
         const normalized = normalizePost(response?.post);
+        if (!normalized?.id) {
+          return localPost;
+        }
 
         setFeed((prev) => {
           const exists = prev.some((post) => post.id === normalized.id);
@@ -84,37 +63,40 @@ export function PostProvider({ children }) {
 
         return normalized;
       } catch {
-        const fallbackPost = localPost || mockFeedPosts.find((post) => post.id === postId) || null;
-        if (fallbackPost && !localPost) {
-          setFeed((prev) => [fallbackPost, ...prev]);
-        }
-        return fallbackPost;
+        return localPost;
       }
     },
     [getPostById],
   );
 
-  const toggleLike = useCallback(async (postId, userName) => {
-    if (!userName) {
+  const toggleLike = useCallback(async (postId) => {
+    if (!user?.userName) {
       return;
     }
 
+    const currentPost = feed.find((post) => post.id === postId);
+    if (!currentPost) {
+      return;
+    }
+
+    const alreadyLiked = currentPost.likedBy.includes(user.userName);
+
     setFeed((prev) =>
       updatePostInFeed(prev, postId, (post) => {
-        const alreadyLiked = post.likedBy.includes(userName);
         const likedBy = alreadyLiked
-          ? post.likedBy.filter((name) => name !== userName)
-          : uniqueUsers([userName, ...post.likedBy]);
+          ? post.likedBy.filter((name) => name !== user.userName)
+          : uniqueUsers([user.userName, ...post.likedBy]);
 
         return {
           ...post,
           likedBy,
+          isLikedByViewer: !alreadyLiked,
         };
       }),
     );
 
     try {
-      const response = await toggleLikePost(postId);
+      const response = alreadyLiked ? await unlikePost(postId) : await likePost(postId);
       if (!Array.isArray(response?.likedBy)) {
         return;
       }
@@ -123,29 +105,30 @@ export function PostProvider({ children }) {
         updatePostInFeed(prev, postId, (post) => ({
           ...post,
           likedBy: uniqueUsers(response.likedBy),
+          isLikedByViewer: Boolean(response.isLikedByViewer),
         })),
       );
     } catch {
-      // Keep optimistic UI state when API isn't available.
+      setFeed((prev) =>
+        updatePostInFeed(prev, postId, (post) => ({
+          ...post,
+          likedBy: alreadyLiked
+            ? uniqueUsers([user.userName, ...post.likedBy])
+            : post.likedBy.filter((name) => name !== user.userName),
+          isLikedByViewer: alreadyLiked,
+        })),
+      );
     }
-  }, []);
+  }, [feed, user?.userName]);
 
   useEffect(() => {
-    if (!feed.length) {
-      return;
-    }
-
-    const serialized = feed.reduce((acc, post) => {
-      acc[post.id] = post.likedBy;
-      return acc;
-    }, {});
-
-    localStorage.setItem(LIKE_STORE_KEY, JSON.stringify(serialized));
-  }, [feed]);
+    setStories(buildStoriesFromPosts(feed, user));
+  }, [feed, user]);
 
   const value = useMemo(
     () => ({
       loading,
+      error,
       feed,
       stories,
       loadFeed,
@@ -153,7 +136,7 @@ export function PostProvider({ children }) {
       getPostById,
       toggleLike,
     }),
-    [loading, feed, stories, loadFeed, loadPostDetails, getPostById, toggleLike],
+    [loading, error, feed, stories, loadFeed, loadPostDetails, getPostById, toggleLike],
   );
 
   return <PostContext.Provider value={value}>{children}</PostContext.Provider>;

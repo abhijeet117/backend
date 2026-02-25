@@ -5,6 +5,22 @@ const postSchema = new mongoose.Schema({
         type : String,
         default : ""
     },
+    comments: [
+        {
+            userName: {
+                type: String,
+                required: true,
+            },
+            text: {
+                type: String,
+                required: true,
+            },
+            createdAt: {
+                type: Date,
+                default: Date.now,
+            },
+        }
+    ],
     img_url : {
         type : String,
         required : [true, "Image is require to post!"]
@@ -16,6 +32,7 @@ const postSchema = new mongoose.Schema({
     }
 }, { timestamps: true })
 
+postSchema.index({ user: 1, createdAt: -1 });
 
 const postModel = mongoose.model("posts" , postSchema);
 module.exports = postModel

@@ -1,3 +1,5 @@
+import "../style/Stories.scss";
+
 const StoriesBar = ({ stories = [] }) => {
   return (
     <section className="ig-stories-wrap" aria-label="Stories">

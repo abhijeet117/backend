@@ -10,12 +10,27 @@ export async function getFeed() {
     return response.data
 }
 
+export async function getAllFeed() {
+    const response = await api.get('/all-feed')
+    return response.data
+}
+
 export async function getPostDetails(postId) {
     const response = await api.get(`/details/${postId}`)
     return response.data
 }
 
-export async function toggleLike(postId) {
+export async function likePost(postId) {
     const response = await api.post(`/like/${postId}`)
+    return response.data
+}
+
+export async function unlikePost(postId) {
+    const response = await api.delete(`/unlike/${postId}`)
+    return response.data
+}
+
+export async function getPostLikes(postId) {
+    const response = await api.get(`/likes/${postId}`)
     return response.data
 }

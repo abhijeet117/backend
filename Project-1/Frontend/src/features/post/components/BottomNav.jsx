@@ -10,7 +10,13 @@ const BottomNav = ({ active = "home", currentUser }) => {
       <button
         type="button"
         className={`ig-bottom-nav__item ${active === "home" ? "is-active" : ""}`}
-        onClick={() => navigate("/")}
+        onClick={() => {
+          if (currentUser?.userName) {
+            navigate(`/profile/${currentUser.userName}/feed`);
+            return;
+          }
+          navigate("/");
+        }}
         aria-label="Home"
       >
         <HomeIcon className="ig-icon" filled={active === "home"} />
@@ -28,6 +34,11 @@ const BottomNav = ({ active = "home", currentUser }) => {
         type="button"
         className={`ig-bottom-nav__item ${active === "profile" ? "is-active" : ""}`}
         aria-label="Profile"
+        onClick={() => {
+          if (currentUser?.userName) {
+            navigate(`/profile/${currentUser.userName}`);
+          }
+        }}
       >
         {currentUser?.profileImg ? (
           <img src={currentUser.profileImg} alt="Profile" className="ig-bottom-nav__avatar" />

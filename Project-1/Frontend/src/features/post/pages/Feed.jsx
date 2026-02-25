@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router";
+import { useNavigate, useParams } from "react-router";
 
 import { useAuth } from "../../auth/hooks/useAuth";
 import BottomNav from "../components/BottomNav";
@@ -8,20 +8,25 @@ import FeedTopBar from "../components/FeedTopBar";
 import LikesModal from "../components/LikesModal";
 import StoriesBar from "../components/StoriesBar";
 import { usePost } from "../hooks/usePost";
-import "../style/feed.scss";
+import "../style/Feed.scss";
 
-const Feed = () => {
+const Feed = ({ scope = "following" }) => {
   const navigate = useNavigate();
+  const { username } = useParams();
   const { user } = useAuth();
-  const { loading, feed, stories, loadFeed, getPostById, toggleLike } = usePost();
+  const { loading, error, feed, stories, loadFeed, getPostById, toggleLike } = usePost();
   const [selectedLikePostId, setSelectedLikePostId] = useState(null);
 
-  const currentUserName = user?.userName || "rahul";
+  const currentUserName = user?.userName || "";
   const selectedLikePost = useMemo(() => getPostById(selectedLikePostId), [getPostById, selectedLikePostId]);
+  const isAllPostsFeed = scope === "all";
+  const emptyMessage = isAllPostsFeed
+    ? "No posts available right now."
+    : "Follow users to see posts in your feed.";
 
   useEffect(() => {
-    loadFeed();
-  }, [loadFeed]);
+    loadFeed(scope);
+  }, [loadFeed, scope]);
 
   const handleOpenPost = useCallback(
     (postId) => {
@@ -32,9 +37,16 @@ const Feed = () => {
 
   const handleToggleLike = useCallback(
     (postId) => {
-      toggleLike(postId, currentUserName);
+      toggleLike(postId);
     },
-    [currentUserName, toggleLike],
+    [toggleLike],
+  );
+
+  const handleOpenProfile = useCallback(
+    (userName) => {
+      navigate(`/profile/${userName}`);
+    },
+    [navigate],
   );
 
   return (
@@ -42,8 +54,11 @@ const Feed = () => {
       <div className="ig-phone-shell">
         <FeedTopBar />
         <section className="ig-scroll-area">
+          {isAllPostsFeed && username ? <p className="ig-loading">Showing all posts for {username}</p> : null}
           <StoriesBar stories={stories} />
+          {error ? <p className="ig-error">{error}</p> : null}
           {loading && !feed.length ? <p className="ig-loading">Loading feed...</p> : null}
+          {!loading && !error && !feed.length ? <p className="ig-loading">{emptyMessage}</p> : null}
           <div className="ig-post-list">
             {feed.map((post) => (
               <FeedPostCard
@@ -53,6 +68,7 @@ const Feed = () => {
                 onOpenPost={handleOpenPost}
                 onToggleLike={() => handleToggleLike(post.id)}
                 onOpenLikes={() => setSelectedLikePostId(post.id)}
+                onOpenProfile={handleOpenProfile}
               />
             ))}
           </div>

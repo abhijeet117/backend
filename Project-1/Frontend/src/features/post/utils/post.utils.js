@@ -1,67 +1,49 @@
-import { mockStories } from "../data/mockFeed";
-
 const DEFAULT_PROFILE =
-  "https://images.unsplash.com/photo-1546961329-78bef0414d7c?auto=format&fit=crop&w=200&q=80";
-const DEFAULT_IMAGE =
-  "https://images.unsplash.com/photo-1526318472351-c75fcf070305?auto=format&fit=crop&w=1200&q=80";
-
-const fallbackComments = [
-  { userName: "foodie_fran", text: "This is unreal." },
-  { userName: "style_icon", text: "Love this shot." },
-  { userName: "tech_enthusiast", text: "Clean composition." },
-];
-
-const fallbackLocations = ["New York, NY", "London, UK", "Paris, France", "Mumbai, IN"];
+  "https://ik.imagekit.io/ysl3ilfeg/insta_default_pic.jpg";
 
 export function uniqueUsers(users = []) {
   return [...new Set((users || []).filter(Boolean))];
-}
-
-function buildFallbackComments(postId) {
-  return fallbackComments.map((comment, index) => ({
-    id: `${postId}-fallback-${index + 1}`,
-    userName: comment.userName,
-    text: comment.text,
-  }));
 }
 
 function normalizeComment(comment, postId, index) {
   if (typeof comment === "string") {
     return {
       id: `${postId}-comment-${index + 1}`,
-      userName: "user",
+      userName: "",
       text: comment,
     };
   }
 
   return {
     id: comment?._id || comment?.id || `${postId}-comment-${index + 1}`,
-    userName: comment?.userName || comment?.user || "user",
+    userName: comment?.userName || comment?.user || "",
     text: comment?.text || comment?.comment || "",
   };
 }
 
 export function normalizePost(post, index = 0) {
-  const id = post?._id || post?.id || `post-${index + 1}`;
-  const userName = post?.user?.userName || post?.userName || `user_${index + 1}`;
+  const id = post?._id || post?.id;
+  if (!id) {
+    return null;
+  }
+
+  const userName = post?.user?.userName || post?.userName || "";
   const profileImg = post?.user?.profileImg || post?.profileImg || DEFAULT_PROFILE;
   const commentsRaw = Array.isArray(post?.comments) ? post.comments : [];
-  const comments = commentsRaw.length
-    ? commentsRaw.map((comment, commentIndex) => normalizeComment(comment, id, commentIndex))
-    : buildFallbackComments(id);
+  const comments = commentsRaw.map((comment, commentIndex) => normalizeComment(comment, id, commentIndex));
 
   return {
     id,
     user: {
       userName,
       profileImg,
-      location: post?.user?.location || post?.location || fallbackLocations[index % fallbackLocations.length],
+      location: post?.user?.location || post?.location || "",
     },
-    imageUrl: post?.img_url || post?.imgUrl || post?.image || post?.imageUrl || DEFAULT_IMAGE,
+    imageUrl: post?.img_url || post?.imgUrl || post?.image || post?.imageUrl || "",
     caption: post?.caption || "",
     comments,
     likedBy: uniqueUsers(post?.likedBy || post?.likes || []),
-    createdAt: post?.createdAt || new Date(Date.now() - (index + 1) * 3600 * 1000).toISOString(),
+    createdAt: post?.createdAt || null,
   };
 }
 
@@ -70,7 +52,7 @@ export function normalizeFeedResponse(payload) {
   if (!Array.isArray(rawPosts)) {
     return [];
   }
-  return rawPosts.map((post, index) => normalizePost(post, index));
+  return rawPosts.map((post, index) => normalizePost(post, index)).filter(Boolean);
 }
 
 export function formatCount(value = 0) {
@@ -114,7 +96,6 @@ export function buildStoriesFromPosts(posts, currentUser) {
       isOwn: true,
     },
     ...postStories,
-    ...mockStories.filter((story) => !story.isOwn),
   ];
 
   const seen = new Set();

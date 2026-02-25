@@ -2,6 +2,7 @@ import { memo, useMemo } from "react";
 
 import { formatCount, formatPostTime } from "../utils/post.utils";
 import { BookmarkIcon, CommentIcon, HeartIcon, MoreIcon, ShareIcon } from "./icons";
+import "../style/Post.scss";
 
 const FeedPostCard = ({
   post,
@@ -10,6 +11,7 @@ const FeedPostCard = ({
   onToggleLike,
   onOpenPost,
   onOpenLikes,
+  onOpenProfile,
 }) => {
   const isLiked = post.likedBy.includes(currentUserName);
   const commentsToShow = expanded ? post.comments : post.comments.slice(0, 2);
@@ -32,8 +34,10 @@ const FeedPostCard = ({
         <div className="ig-post__author">
           <img src={post.user.profileImg} alt={post.user.userName} loading="lazy" />
           <div>
-            <p className="ig-post__username">{post.user.userName}</p>
-            <p className="ig-post__location">{post.user.location}</p>
+            <button type="button" className="ig-link-btn ig-post__username-btn" onClick={() => onOpenProfile?.(post.user.userName)}>
+              <p className="ig-post__username">{post.user.userName}</p>
+            </button>
+            {post.user.location ? <p className="ig-post__location">{post.user.location}</p> : null}
           </div>
         </div>
         <button type="button" className="ig-icon-btn" aria-label="Post options">
@@ -48,7 +52,11 @@ const FeedPostCard = ({
         aria-label="Open post details"
         disabled={expanded}
       >
-        <img className="ig-post__image" src={post.imageUrl} alt={`${post.user.userName} post`} loading="lazy" />
+        {post.imageUrl ? (
+          <img className="ig-post__image" src={post.imageUrl} alt={`${post.user.userName} post`} loading="lazy" />
+        ) : (
+          <div className="ig-post__image" aria-hidden="true" />
+        )}
       </button>
 
       <div className="ig-post__actions">
@@ -76,7 +84,10 @@ const FeedPostCard = ({
           {likedByLine}
         </button>
         <p className="ig-post__caption">
-          <strong>{post.user.userName}</strong> {post.caption}
+          <button type="button" className="ig-link-btn ig-post__caption-user" onClick={() => onOpenProfile?.(post.user.userName)}>
+            <strong>{post.user.userName}</strong>
+          </button>{" "}
+          {post.caption}
         </p>
 
         {!expanded && post.comments.length > 2 ? (
