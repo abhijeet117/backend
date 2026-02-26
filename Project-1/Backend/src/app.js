@@ -1,4 +1,6 @@
 const express = require("express")
+const fs = require("fs")
+const path = require("path")
 const cookieParser = require("cookie-parser")
 const cors = require("cors")
 
@@ -8,12 +10,14 @@ const userRouter = require("./routes/user.routes")
 
 const app = express()
 
+const configuredFrontendOrigin = process.env.FRONTEND_URL
 const allowedOrigins = [
+  configuredFrontendOrigin,
   "http://localhost:5173",
   "http://localhost:5174",
   "http://127.0.0.1:5173",
   "http://127.0.0.1:5174",
-]
+].filter(Boolean)
 
 function isLocalDevOrigin(origin) {
   return /^http:\/\/localhost:\d+$/.test(origin) || /^http:\/\/127\.0\.0\.1:\d+$/.test(origin)
@@ -40,5 +44,15 @@ app.use(cookieParser())
 app.use("/api/auth", authRouter)
 app.use("/api/post", postRouter)
 app.use("/api/users", userRouter)
+
+const frontendDistPath = path.resolve(__dirname, "../../Frontend/dist")
+const frontendIndexPath = path.join(frontendDistPath, "index.html")
+
+if (fs.existsSync(frontendDistPath)) {
+  app.use(express.static(frontendDistPath))
+  app.get(/^(?!\/api).*/, (_req, res) => {
+    res.sendFile(frontendIndexPath)
+  })
+}
 
 module.exports = app
