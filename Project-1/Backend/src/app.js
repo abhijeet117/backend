@@ -11,8 +11,10 @@ const userRouter = require("./routes/user.routes")
 const app = express()
 
 const configuredFrontendOrigin = process.env.FRONTEND_URL
+const renderExternalOrigin = process.env.RENDER_EXTERNAL_URL
 const allowedOrigins = [
   configuredFrontendOrigin,
+  renderExternalOrigin,
   "http://localhost:5173",
   "http://localhost:5174",
   "http://127.0.0.1:5173",
@@ -45,7 +47,7 @@ app.use("/api/auth", authRouter)
 app.use("/api/post", postRouter)
 app.use("/api/users", userRouter)
 
-const frontendDistPath = path.resolve(__dirname, "../../Frontend/dist")
+const frontendDistPath = path.resolve(__dirname, "../public")
 const frontendIndexPath = path.join(frontendDistPath, "index.html")
 
 if (fs.existsSync(frontendDistPath)) {
