@@ -1,10 +1,12 @@
 const express = require("express")
+const cookieParser = require("cookie-parser")
 const app = express()
 require('dotenv').config()
 
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 app.use(express.text({ type: "text/plain" }))
+app.use(cookieParser())
 
 const authRoutes= require("./routes/auth.routes")
 
