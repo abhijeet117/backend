@@ -8,6 +8,7 @@ const {
 } = require("../utils/auth.utils")
 
 const blacklistModel = require("../models/blacklist.model")
+const redis = require("../config/cache")
 
 function getCookieOptions() {
     return {
@@ -199,21 +200,29 @@ async function getme(req, res) {
 }
 
 async function logout(req, res) {
-    try {
-        const token = req.authToken || req.cookies?.token
+  try {
+    const token = req.authToken || req.cookies?.token;
 
-        if (token) {
-            await blacklistModel.create({ token })
-        }
-
-        res.clearCookie("token", getClearCookieOptions())
-
-        return res.status(200).json({
-            message: "Logout successful."
-        })
-    } catch (error) {
-        return res.status(500).json({ message: "Failed to logout user.", error: error.message })
+    if (!token) {
+      return res.status(400).json({
+        message: "Token not found.",
+      });
     }
+
+    await redis.set(token, "blacklisted", "EX", 60 * 60 * 24);
+
+    res.clearCookie("token", getClearCookieOptions());
+
+    return res.status(200).json({
+      message: "Logout successful.",
+    });
+
+  } catch (error) {
+    return res.status(500).json({
+      message: "Failed to logout user.",
+      error: error.message,
+    });
+  }
 }
 
 
