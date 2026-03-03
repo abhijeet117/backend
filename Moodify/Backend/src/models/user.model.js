@@ -1,6 +1,28 @@
 const mongoose =  require("mongoose");
 
+const expressionHistorySchema = new mongoose.Schema(
+    {
+        mood: {
+            type: String,
+            enum: ["Happy", "Calm", "Energetic", "Melancholy"],
+            required: true
+        },
+        capturedAt: {
+            type: Date,
+            default: Date.now
+        }
+    },
+    {
+        _id: true
+    }
+)
+
 const userSchema = new mongoose.Schema({
+    fullName: {
+        type: String,
+        trim: true,
+        default: ""
+    },
     username : {
         type : String,
         required : [true, "Username is required "],
@@ -17,6 +39,10 @@ const userSchema = new mongoose.Schema({
         type : String,
         required : [true, "Password is required "],
         select : false
+    },
+    expressionHistory: {
+        type: [expressionHistorySchema],
+        default: []
     }
 }, {timestamps : true})
 

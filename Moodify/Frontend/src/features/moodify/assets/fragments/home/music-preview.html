@@ -1,0 +1,53 @@
+<section class="music-section">
+    <div class="music-player-wrap">
+      <div class="music-section-label">Preview</div>
+      <h2 class="music-section-heading">Music that <em style="font-style:italic;color:var(--accent-lavender)">feels you</em></h2>
+      <div class="player-card">
+        <!-- EQ BG -->
+        <div class="eq-bg" id="eqBg"></div>
+        
+        <div class="player-top">
+          <div class="player-album">
+            <svg viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg" width="44" height="44">
+              <circle cx="30" cy="30" r="12" stroke="rgba(255,255,255,0.5)" stroke-width="1.5" fill="none"/>
+              <circle cx="30" cy="30" r="4" fill="rgba(255,255,255,0.7)"/>
+              <path d="M30 10 L30 18" stroke="rgba(255,255,255,0.4)" stroke-width="1.5" stroke-linecap="round"/>
+              <path d="M30 42 L30 50" stroke="rgba(255,255,255,0.4)" stroke-width="1.5" stroke-linecap="round"/>
+              <path d="M10 30 L18 30" stroke="rgba(255,255,255,0.4)" stroke-width="1.5" stroke-linecap="round"/>
+              <path d="M42 30 L50 30" stroke="rgba(255,255,255,0.4)" stroke-width="1.5" stroke-linecap="round"/>
+              <circle cx="30" cy="30" r="28" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
+            </svg>
+          </div>
+          <div class="player-meta">
+            <div class="player-mood-tag">
+              <svg width="10" height="10" viewBox="0 0 20 20" fill="currentColor"><path d="M10 2C5.58 2 2 5.58 2 10s3.58 8 8 8 8-3.58 8-8-3.58-8-8-8zm-1 11.5v-7l5.25 3.5L9 13.5z"/></svg>
+              Happy Mood
+            </div>
+            <div class="player-track-name">Golden Hour</div>
+            <div class="player-track-artist">JVKE · 2024 Remaster</div>
+          </div>
+        </div>
+        <div class="player-controls">
+          <button class="ctrl-btn" title="Previous">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M6 6h2v12H6zm3.5 6 8.5 6V6z"/></svg>
+          </button>
+          <button class="ctrl-btn" title="Rewind">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M11 18V6l-8.5 6 8.5 6zm.5-6 8.5 6V6l-8.5 6z"/></svg>
+          </button>
+          <button class="play-btn" title="Play/Pause">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+          </button>
+          <button class="ctrl-btn" title="Forward">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M13 18V6l8.5 6L13 18zm-2.5-6L2 6v12l8.5-6z"/></svg>
+          </button>
+          <button class="ctrl-btn" title="Next">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M16 6h2v12h-2zm-11 0v12l8.5-6L5 6z"/></svg>
+          </button>
+        </div>
+        <div class="player-progress">
+          <div class="progress-bar"><div class="progress-fill"></div></div>
+          <div class="progress-times"><span>1:24</span><span>3:47</span></div>
+        </div>
+      </div>
+    </div>
+  </section>

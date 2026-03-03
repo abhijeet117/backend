@@ -1,13 +1,15 @@
-import React from 'react'
-import FaceExpression from './features/expression/components/FaceExpression'
+import AppRoutes from "./app/routing/AppRoutes.jsx";
+import { useAuthInit } from "./features/auth/hooks/useAuthInit.js";
+import "./features/moodify/assets/moodify.css";
 
-const App = () => {
-  return (
-    <>
-      <FaceExpression/> 
+function App() {
+  const { isInitialized } = useAuthInit();
 
-    </>
-  )
+  if (!isInitialized) {
+    return null;
+  }
+
+  return <AppRoutes />;
 }
 
-export default App
+export default App;
