@@ -1,0 +1,134 @@
+#page-dashboard {
+  background: var(--bg);
+  min-height: 100vh;
+  display: grid;
+  grid-template-rows: auto 1fr;
+}
+
+.dash-nav {
+  padding: 20px 48px;
+  display: flex; align-items: center; justify-content: space-between;
+  background: rgba(248,247,244,0.8);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(0,0,0,0.06);
+  position: sticky; top: 0; z-index: 50;
+}
+.dash-logo {
+  font-family: var(--font-tech);
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  display: flex; align-items: center; gap: 8px;
+}
+.dash-logo .dot {
+  width: 7px; height: 7px;
+  background: var(--accent-coral);
+  border-radius: 50%;
+  animation: pulse-dot 2s ease-in-out infinite;
+}
+.dash-greeting {
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+}
+.dash-greeting strong { color: var(--text-primary); font-weight: 600; }
+.dash-avatar {
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent-coral), var(--accent-lavender));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.9rem;
+  color: white;
+  font-weight: 600;
+  cursor: none;
+  border: none;
+  transition: transform var(--transition), box-shadow var(--transition);
+}
+.dash-user-menu {
+  position: relative;
+}
+.dash-user-trigger {
+  border: none;
+  background: transparent;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  cursor: none;
+  padding: 0;
+}
+.dash-user-trigger:hover .dash-avatar {
+  transform: scale(1.04);
+  box-shadow: 0 8px 24px rgba(255,107,71,0.3);
+}
+.dash-user-name {
+  font-size: 0.88rem;
+  color: var(--text-primary);
+  font-weight: 500;
+}
+.dash-user-dropdown {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  min-width: 160px;
+  background: var(--surface);
+  border: 1px solid rgba(0,0,0,0.08);
+  border-radius: 14px;
+  box-shadow: 0 14px 36px rgba(0,0,0,0.1);
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  z-index: 60;
+}
+.dash-user-item {
+  border: none;
+  background: transparent;
+  padding: 10px 12px;
+  border-radius: 10px;
+  text-align: left;
+  color: var(--text-primary);
+  font-size: 0.85rem;
+  font-family: var(--font-body);
+  cursor: none;
+  transition: background-color var(--transition), color var(--transition);
+}
+.dash-user-item:hover {
+  background: rgba(255,107,71,0.08);
+  color: var(--accent-coral);
+}
+.dash-user-item-danger:hover {
+  background: rgba(255,107,71,0.12);
+  color: var(--accent-coral);
+}
+
+.dash-body {
+  display: grid;
+  grid-template-columns: 1fr 380px;
+  gap: 32px;
+  padding: 40px 48px;
+  align-items: start;
+}
+
+.dash-main { display: flex; flex-direction: column; gap: 28px; }
+
+.dash-section-label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  margin-bottom: 16px;
+}
+
+/* WEBCAM DETECTION CARD */
+
+/* Dash section label */
+.dash-section-label {
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-family: var(--font-tech);
+  color: var(--text-secondary);
+  margin-bottom: 16px;
+}
+

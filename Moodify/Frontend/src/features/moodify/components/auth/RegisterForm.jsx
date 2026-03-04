@@ -1,6 +1,7 @@
 import { useCallback } from "react";
-import registerFormHtml from "../../assets/fragments/auth/register-form.html?raw";
+import { registerFormHtml } from "../../assets/templates/fragments.js";
 import HtmlFragment from "../common/HtmlFragment.jsx";
+import "./RegisterForm.scss";
 
 function RegisterForm({ onRegister, onGoLogin, onGoHome }) {
   const handleReady = useCallback(

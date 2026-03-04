@@ -15,18 +15,18 @@ export function activateCam() {
 
   placeholder.innerHTML = `
     <div style="text-align:center">
-      <div style="font-size:3rem;margin-bottom:12px;animation:pulse-dot 1s ease-in-out infinite">??</div>
+      <div style="font-size:3rem;margin-bottom:12px;animation:pulse-dot 1s ease-in-out infinite">\u25CF</div>
       <p class="cam-text" style="color:rgba(255,107,71,0.8);font-weight:500;font-family:'Bricolage Grotesque',sans-serif">Scanning facial landmarks...</p>
-      <p class="cam-text" style="font-size:0.78rem;margin-top:8px;font-family:'Caveat',cursive;font-size:1.1rem;color:rgba(255,107,71,0.5)">reading your vibe ?</p>
+      <p class="cam-text" style="font-size:0.78rem;margin-top:8px;font-family:'Caveat',cursive;font-size:1.1rem;color:rgba(255,107,71,0.5)">reading your vibe...</p>
     </div>
   `;
 
-  const moods = ["happy", "calm", "energetic", "sad"];
+  const moods = ["happy", "neutral", "shock", "sad"];
   const moodData = {
-    happy: { emoji: "??", name: "Happy", conf: "87%" },
-    calm: { emoji: "??", name: "Calm", conf: "91%" },
-    energetic: { emoji: "??", name: "Energetic", conf: "78%" },
-    sad: { emoji: "??", name: "Melancholy", conf: "83%" },
+    happy: { emoji: "H", name: "Happy", conf: "87%" },
+    neutral: { emoji: "N", name: "Neutral", conf: "91%" },
+    shock: { emoji: "S", name: "Shock", conf: "78%" },
+    sad: { emoji: "D", name: "Sad", conf: "83%" },
   };
 
   if (moodCycleInterval) {
@@ -49,7 +49,7 @@ export function activateCam() {
     }
 
     const statEl = document.querySelector(
-      ".mood-stat-value.happy, .mood-stat-value.calm, .mood-stat-value.energetic, .mood-stat-value.sad"
+      ".mood-stat-value.happy, .mood-stat-value.neutral, .mood-stat-value.shock, .mood-stat-value.sad"
     );
 
     if (statEl) {

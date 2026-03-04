@@ -1,0 +1,150 @@
+.webcam-detect-card {
+  background: var(--bg-dark);
+  border-radius: 24px;
+  overflow: hidden;
+  border: 1.5px solid rgba(255,255,255,0.06);
+  position: relative;
+  transition: all 0.4s ease;
+}
+.webcam-detect-card.happy { border-color: rgba(255,107,71,0.4); box-shadow: 0 0 40px rgba(255,107,71,0.15); }
+.webcam-detect-card.calm,
+.webcam-detect-card.neutral { border-color: rgba(78,205,196,0.4); box-shadow: 0 0 40px rgba(78,205,196,0.15); }
+.webcam-detect-card.energetic,
+.webcam-detect-card.shock { border-color: rgba(155,143,212,0.4); box-shadow: 0 0 40px rgba(155,143,212,0.15); }
+.webcam-detect-card.sad { border-color: rgba(107,127,212,0.4); box-shadow: 0 0 40px rgba(107,127,212,0.15); }
+
+.webcam-detect-header {
+  padding: 20px 24px;
+  display: flex; align-items: center; justify-content: space-between;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+.detect-status {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 0.8rem;
+  color: rgba(248,247,244,0.6);
+  font-weight: 500;
+}
+.detect-status .live-dot {
+  width: 7px; height: 7px;
+  background: #22c55e;
+  border-radius: 50%;
+  animation: pulse-dot 1.2s ease-in-out infinite;
+}
+
+.webcam-viewport {
+  height: 380px;
+  background: linear-gradient(160deg, #0d0f1a, #12152a);
+  position: relative;
+  display: flex; align-items: center; justify-content: center;
+}
+.webcam-feed-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform: scaleX(-1);
+  transition: filter 220ms ease, transform 220ms ease;
+}
+.webcam-feed-video.is-captured {
+  filter: blur(6px);
+  transform: scaleX(-1) scale(1.02);
+}
+.webcam-placeholder-big {
+  display: flex; flex-direction: column; align-items: center; gap: 20px;
+}
+.webcam-capture-controls {
+  position: absolute;
+  left: 20px;
+  right: 20px;
+  bottom: 20px;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: center;
+}
+.cam-icon {
+  width: 64px; height: 64px;
+  border-radius: 50%;
+  background: rgba(255,107,71,0.1);
+  border: 1.5px solid rgba(255,107,71,0.2);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.8rem;
+}
+.cam-text {
+  font-size: 0.9rem;
+  color: rgba(248,247,244,0.35);
+  text-align: center;
+  line-height: 1.6;
+  font-weight: 300;
+}
+.btn-start-cam {
+  padding: 12px 28px;
+  background: var(--accent-coral);
+  color: white;
+  border: none;
+  border-radius: 100px;
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: none;
+  transition: all var(--transition);
+  box-shadow: 0 6px 20px rgba(255,107,71,0.35);
+}
+.btn-start-cam:hover { transform: scale(1.04); }
+.btn-start-cam:disabled {
+  opacity: 0.5;
+  transform: none;
+}
+
+/* Mesh overlay on webcam */
+.webcam-overlay-grid {
+  position: absolute; inset: 0;
+  background-image: 
+    linear-gradient(rgba(255,107,71,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,107,71,0.03) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+}
+.webcam-scan-overlay {
+  position: absolute; inset: 0;
+  pointer-events: none;
+}
+.scan-line-dash {
+  position: absolute;
+  left: 10%; right: 10%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255,107,71,0.6), transparent);
+  animation: scan 3s ease-in-out infinite;
+  box-shadow: 0 0 10px rgba(255,107,71,0.4);
+}
+
+
+.mood-tag-card {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255,107,71,0.1);
+  color: var(--accent-coral);
+  padding: 5px 12px;
+  border-radius: 100px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+@keyframes scan {
+  0% { top: 10%; opacity: 0; }
+  10% { opacity: 1; }
+  90% { opacity: 1; }
+  100% { top: 90%; opacity: 0; }
+}
+
+#page-dashboard .webcam-detect-card {
+  background-color: var(--bg-dark) !important;
+  background-image: none !important;
+  transition: border-color var(--transition), box-shadow var(--transition), transform var(--transition);
+}
+
+#page-dashboard .btn-start-cam {
+  transition: background-color var(--transition), color var(--transition), border-color var(--transition), box-shadow var(--transition), transform var(--transition);
+}
+

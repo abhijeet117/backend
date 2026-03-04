@@ -1,6 +1,7 @@
 import { useCallback } from "react";
-import dashboardNavHtml from "../../assets/fragments/dashboard/nav.html?raw";
+import { dashboardNavHtml } from "../../assets/templates/fragments.js";
 import HtmlFragment from "../common/HtmlFragment.jsx";
+import "./DashboardNav.scss";
 
 function DashboardNav({ onLogout }) {
   const handleReady = useCallback(

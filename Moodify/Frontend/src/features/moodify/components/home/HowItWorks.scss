@@ -1,0 +1,99 @@
+.hiw-section {
+  padding: 100px 60px;
+  background: var(--bg-dark);
+  position: relative;
+  overflow: hidden;
+}
+.hiw-section::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse 60% 60% at 50% 0%, rgba(255,107,71,0.07) 0%, transparent 70%);
+}
+.hiw-label {
+  font-size: 0.66rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  font-family: var(--font-tech);
+  color: rgba(255,107,71,0.7);
+  text-align: center;
+  margin-bottom: 16px;
+}
+.hiw-heading {
+  font-family: var(--font-editorial);
+  font-size: clamp(2rem, 3.5vw, 3.2rem);
+  font-weight: 300;
+  text-align: center;
+  letter-spacing: -0.03em;
+  margin-bottom: 80px;
+  color: var(--text-light);
+}
+.hiw-steps {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr auto 1fr;
+  gap: 0;
+  align-items: start;
+  max-width: 900px;
+  margin: 0 auto;
+  position: relative;
+  z-index: 2;
+}
+.hiw-arrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-top: 40px;
+  color: rgba(255,107,71,0.3);
+  font-size: 1.5rem;
+}
+.hiw-step {
+  text-align: center;
+  padding: 0 20px;
+}
+.hiw-step-num {
+  width: 56px; height: 56px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(255,107,71,0.3);
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 20px;
+  font-family: var(--font-tech);
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--accent-coral);
+  position: relative;
+}
+.hiw-step-num::after {
+  content: '';
+  position: absolute; inset: -4px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255,107,71,0.1), transparent 70%);
+}
+.hiw-step-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  margin: 0 auto 16px;
+}
+.hiw-step-icon svg {
+  width: 52px;
+  height: 52px;
+}
+.hiw-step-title {
+  font-family: var(--font-editorial);
+  font-style: italic;
+  font-size: 1.2rem;
+  color: var(--text-light);
+  margin-bottom: 10px;
+  letter-spacing: -0.02em;
+}
+.hiw-step-text {
+  font-size: 0.85rem;
+  color: rgba(248,247,244,0.5);
+  line-height: 1.6;
+  font-weight: 300;
+  font-family: var(--font-body);
+}
+
+

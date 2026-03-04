@@ -1,21 +1,13 @@
-import BackHomeButton from "./BackHomeButton.jsx";
-import MoodHistory from "./MoodHistory.jsx";
-import SidebarPlayer from "./SidebarPlayer.jsx";
+import MusicPlayer from "../../../music/components/MusicPlayer.jsx";
+import "./DashboardSidebar.scss";
 
-function DashboardSidebar({ onBackHome }) {
+function DashboardSidebar() {
   return (
     <div className="dash-sidebar">
       <div>
         <div className="dash-section-label">Now Playing</div>
-        <SidebarPlayer />
+        <MusicPlayer />
       </div>
-
-      <div>
-        <div className="dash-section-label">Mood History</div>
-        <MoodHistory />
-      </div>
-
-      <BackHomeButton onBackHome={onBackHome} />
     </div>
   );
 }

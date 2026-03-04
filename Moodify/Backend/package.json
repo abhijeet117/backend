@@ -5,19 +5,27 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "npx nodemon server.js"
+    "dev": "npx nodemon server.js",
+    "seed:songs": "node scripts/seedSongs.js",
+    "import:yt": "node scripts/importYoutubePlaylist.js",
+    "sync:yt": "node scripts/syncYoutubePlaylist.js",
+    "migrate:moods": "node scripts/migrateMoodLabels.js",
+    "prepare:preview-song": "node scripts/preparePreviewSong.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
+    "@imagekit/nodejs": "^7.3.0",
     "bcryptjs": "^3.0.3",
     "cookie-parser": "^1.4.7",
     "dotenv": "^17.3.1",
     "express": "^5.2.1",
     "ioredis": "^5.10.0",
     "jsonwebtoken": "^9.0.3",
-    "mongoose": "^9.2.3"
+    "mongoose": "^9.2.3",
+    "multer": "^2.1.0",
+    "node-id3": "^0.2.9"
   }
 }

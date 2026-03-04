@@ -1,0 +1,181 @@
+/* MUSIC PREVIEW */
+.music-section {
+  padding: 100px 60px;
+  background: var(--bg-dark);
+  border-top: 1px solid rgba(255,255,255,0.04);
+  position: relative;
+  overflow: hidden;
+}
+.music-section::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse 70% 50% at 50% 100%, rgba(155,143,212,0.06) 0%, transparent 70%);
+}
+.music-player-wrap {
+  max-width: 700px;
+  margin: 0 auto;
+  position: relative;
+  z-index: 2;
+}
+.music-section-label {
+  font-size: 0.66rem; font-weight: 600;
+  letter-spacing: 0.16em; text-transform: uppercase;
+  font-family: var(--font-tech);
+  color: rgba(155,143,212,0.7);
+  text-align: center; margin-bottom: 16px;
+}
+.music-section-heading {
+  font-family: var(--font-editorial);
+  font-size: clamp(2rem, 3vw, 3rem);
+  font-weight: 300;
+  text-align: center;
+  color: var(--text-light);
+  letter-spacing: -0.03em;
+  margin-bottom: 60px;
+}
+
+.player-card {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 28px;
+  padding: 40px;
+  backdrop-filter: blur(20px);
+  position: relative;
+  overflow: hidden;
+}
+.player-card::before {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 100%;
+  background: linear-gradient(to top, rgba(155,143,212,0.04), transparent);
+}
+.player-top {
+  display: flex; gap: 30px; align-items: center;
+  margin-bottom: 36px;
+  position: relative; z-index: 1;
+}
+.player-album {
+  width: 110px; height: 110px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #FF6B47 0%, #9B8FD4 100%);
+  flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 2.5rem;
+  box-shadow: 0 16px 40px rgba(255,107,71,0.3);
+  animation: album-spin 20s linear infinite;
+}
+@keyframes album-spin {
+  from { border-radius: 16px; }
+  50% { border-radius: 50%; }
+  to { border-radius: 16px; }
+}
+.player-meta { flex: 1; }
+.player-mood-tag {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: rgba(255,107,71,0.12);
+  border: 1px solid rgba(255,107,71,0.2);
+  color: var(--accent-coral);
+  padding: 5px 14px;
+  border-radius: 100px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 14px;
+}
+.player-track-name {
+  font-family: var(--font-editorial);
+  font-size: 1.6rem;
+  font-style: italic;
+  color: var(--text-light);
+  letter-spacing: -0.02em;
+  margin-bottom: 6px;
+}
+.player-track-artist {
+  font-size: 0.9rem;
+  color: rgba(248,247,244,0.5);
+  font-weight: 300;
+  font-family: var(--font-body);
+}
+.player-controls {
+  display: flex; align-items: center; justify-content: center;
+  gap: 24px;
+  margin-bottom: 28px;
+  position: relative; z-index: 1;
+}
+.ctrl-btn {
+  background: transparent;
+  border: none;
+  color: rgba(248,247,244,0.4);
+  cursor: none;
+  transition: all var(--transition);
+  font-size: 1.2rem;
+  display: flex; align-items: center;
+}
+.ctrl-btn:hover { color: var(--text-light); transform: scale(1.1); }
+.play-btn {
+  width: 56px; height: 56px;
+  background: var(--accent-coral);
+  border: none;
+  border-radius: 50%;
+  color: white;
+  cursor: none;
+  font-size: 1.3rem;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 8px 24px rgba(255,107,71,0.4);
+  transition: all var(--transition);
+}
+.play-btn:hover {
+  transform: scale(1.08);
+  box-shadow: 0 12px 36px rgba(255,107,71,0.5);
+}
+.player-progress {
+  position: relative; z-index: 1;
+}
+.progress-bar {
+  height: 4px;
+  background: rgba(255,255,255,0.1);
+  border-radius: 4px;
+  margin-bottom: 10px;
+  position: relative; overflow: hidden;
+}
+.progress-fill {
+  height: 100%;
+  width: 62%;
+  background: linear-gradient(90deg, var(--accent-coral), var(--accent-lavender));
+  border-radius: 4px;
+  animation: progress-flow 15s linear infinite;
+}
+@keyframes progress-flow {
+  from { width: 0%; }
+  to { width: 100%; }
+}
+.progress-times {
+  display: flex; justify-content: space-between;
+  font-size: 0.75rem;
+  color: rgba(248,247,244,0.35);
+}
+
+/* BG EQUALIZER */
+.eq-bg {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 120px;
+  display: flex; align-items: flex-end; justify-content: center;
+  gap: 3px;
+  opacity: 0.07;
+  overflow: hidden;
+}
+.eq-bg-bar {
+  width: 4px;
+  background: var(--accent-lavender);
+  border-radius: 3px 3px 0 0;
+  animation: eq-anim var(--d) ease-in-out infinite alternate;
+}
+@keyframes eq-anim {
+  from { height: 10px; }
+  to { height: var(--h); }
+}
+
+

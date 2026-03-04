@@ -1,0 +1,81 @@
+/* MOOD STATUS CARD */
+.mood-status-card {
+  background: white;
+  border-radius: 20px;
+  padding: 28px;
+  border: 1.5px solid rgba(0,0,0,0.06);
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 20px;
+}
+.mood-result-card {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.mood-result-title {
+  font-family: var(--font-hand);
+  font-size: 1.15rem;
+  color: var(--accent-coral);
+}
+.mood-result-row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.mood-result-description {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+.mood-result-genre {
+  display: inline-flex;
+  width: fit-content;
+  padding: 6px 12px;
+  border-radius: 100px;
+  background: rgba(255,107,71,0.08);
+  color: var(--accent-coral);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.mood-stat { text-align: center; }
+.mood-stat-value {
+  font-family: var(--font-display);
+  font-size: 2rem;
+  letter-spacing: -0.03em;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+}
+.mood-stat-value.happy { color: var(--mood-happy); }
+.mood-stat-value.calm,
+.mood-stat-value.neutral { color: var(--mood-neutral); }
+.mood-stat-value.energetic,
+.mood-stat-value.shock { color: var(--mood-shock); }
+.mood-stat-label {
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.mood-stat-divider {
+  width: 1px;
+  background: rgba(0,0,0,0.07);
+  align-self: stretch;
+}
+
+/* SIDEBAR */
+
+/* MOOD STAT VALUE corrected font */
+.mood-stat-value {
+  font-family: var(--font-editorial);
+  font-style: italic;
+  font-size: 2rem;
+  letter-spacing: -0.03em;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+}
+

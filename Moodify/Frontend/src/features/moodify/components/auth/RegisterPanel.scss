@@ -1,0 +1,85 @@
+#page-login, #page-register {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+
+.auth-left {
+  background: var(--bg-dark);
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 50px;
+}
+.auth-left::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse 80% 80% at 20% 50%, rgba(255,107,71,0.1) 0%, transparent 60%),
+              radial-gradient(ellipse 60% 60% at 80% 80%, rgba(155,143,212,0.08) 0%, transparent 60%);
+}
+.auth-left-shapes { position: absolute; inset: 0; overflow: hidden; }
+.auth-shape {
+  position: absolute;
+  border-radius: 50%;
+  border: 1px solid rgba(255,107,71,0.12);
+  animation: auth-rotate var(--dur, 20s) linear infinite;
+}
+.auth-shape:nth-child(1) { width: 300px; height: 300px; top: 10%; left: 10%; --dur: 25s; }
+.auth-shape:nth-child(2) { width: 200px; height: 200px; bottom: 20%; right: 10%; --dur: 18s; animation-direction: reverse; border-color: rgba(155,143,212,0.12); }
+.auth-shape:nth-child(3) { width: 150px; height: 150px; top: 50%; left: 50%; --dur: 30s; }
+
+@keyframes auth-rotate {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.auth-left-content { position: relative; z-index: 2; }
+.auth-brand {
+  font-family: var(--font-tech);
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-light);
+  letter-spacing: -0.01em;
+  margin-bottom: 80px;
+  display: flex; align-items: center; gap: 10px;
+}
+.auth-brand .dot {
+  width: 8px; height: 8px;
+  background: var(--accent-coral);
+  border-radius: 50%;
+}
+.auth-headline {
+  font-family: var(--font-editorial);
+  font-size: clamp(2.2rem, 3vw, 3.5rem);
+  font-weight: 300;
+  color: var(--text-light);
+  letter-spacing: -0.03em;
+  line-height: 1.08;
+  margin-bottom: 24px;
+}
+.auth-headline em { font-style: italic; color: var(--accent-coral); }
+.auth-hand-note {
+  font-family: var(--font-hand);
+  font-size: 1.3rem;
+  color: rgba(255,107,71,0.55);
+  margin-top: 28px;
+  display: block;
+  font-weight: 500;
+}
+.auth-desc {
+  font-size: 0.95rem;
+  color: rgba(248,247,244,0.45);
+  line-height: 1.6;
+  font-weight: 300;
+  max-width: 340px;
+}
+.auth-left-footer {
+  position: relative; z-index: 2;
+  font-size: 0.78rem;
+  color: rgba(248,247,244,0.25);
+}
+
+/* GLASS FORM PANEL */
+

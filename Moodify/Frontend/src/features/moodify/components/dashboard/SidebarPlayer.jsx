@@ -1,5 +1,6 @@
-import sidebarPlayerHtml from "../../assets/fragments/dashboard/sidebar-player.html?raw";
+import { sidebarPlayerHtml } from "../../assets/templates/fragments.js";
 import HtmlFragment from "../common/HtmlFragment.jsx";
+import "./SidebarPlayer.scss";
 
 function SidebarPlayer() {
   return <HtmlFragment html={sidebarPlayerHtml} />;

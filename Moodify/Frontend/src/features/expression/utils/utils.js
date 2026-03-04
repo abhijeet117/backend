@@ -1,27 +1,14 @@
 import { FaceLandmarker, FilesetResolver } from "@mediapipe/tasks-vision";
 import { useEffect, useRef, useState } from "react";
+import { mapEmotionToMood, toDisplayMood } from "../../../utils/mapEmotionToMood.js";
 
 const WASM_PATH =
   "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision/wasm";
 const MODEL_ASSET_PATH =
   "https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task";
 
-const getScore = (categories, categoryName) =>
-  categories.find((item) => item.categoryName === categoryName)?.score || 0;
-
-const sideMax = (categories, leftKey, rightKey) =>
-  Math.max(getScore(categories, leftKey), getScore(categories, rightKey));
-
 export const getExpressionFromBlendshapes = (categories = []) => {
-  const smile = sideMax(categories, "mouthSmileLeft", "mouthSmileRight");
-  const mouthOpen = getScore(categories, "jawOpen");
-  const browDown = sideMax(categories, "browDownLeft", "browDownRight");
-  const mouthFrown = sideMax(categories, "mouthFrownLeft", "mouthFrownRight");
-
-  if (mouthOpen > 0.45) return "Shock";
-  if (smile > 0.35) return "Smile";
-  if (browDown > 0.25 && mouthFrown > 0.25) return "Sad";
-  return "Neutral";
+  return toDisplayMood(mapEmotionToMood(categories));
 };
 
 export const createFaceLandmarker = async () => {
@@ -61,6 +48,16 @@ export const detectExpression = (faceLandmarker, videoElement) => {
 
   if (!categories?.length) return "Detecting...";
   return getExpressionFromBlendshapes(categories);
+};
+
+export const detectBlendshapeCategories = (faceLandmarker, videoElement) => {
+  if (!faceLandmarker || !videoElement) {
+    return [];
+  }
+
+  const results = faceLandmarker.detectForVideo(videoElement, performance.now());
+  const categories = results?.faceBlendshapes?.[0]?.categories;
+  return Array.isArray(categories) ? categories : [];
 };
 
 export const setupExpressionDetector = async (videoElement, onExpression) => {

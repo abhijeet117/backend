@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import "./HtmlFragment.scss";
 
 function HtmlFragment({ html, onReady }) {
   const hostRef = useRef(null);

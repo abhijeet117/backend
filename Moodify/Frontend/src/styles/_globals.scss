@@ -1,0 +1,218 @@
+@import url("https://fonts.googleapis.com/css2?family=Unbounded:wght@300;400;600;700;900&family=Bricolage+Grotesque:opsz,wght@12..96,300;12..96,400;12..96,500;12..96,600;12..96,700&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,700;1,9..144,300;1,9..144,700&family=Caveat:wght@400;500;600;700&family=Shadows+Into+Light&family=Kalam:wght@300;400;700&display=swap");
+
+:root {
+  --bg: #F8F7F4;
+  --bg-dark: #0B0D1A;
+  --surface: #FFFFFF;
+  --surface-dark: #12152A;
+  --accent-coral: #FF6B47;
+  --accent-lavender: #9B8FD4;
+  --accent-cyan: #4ECDC4;
+  --accent-warm: #F7C59F;
+  --text-primary: #0B0D1A;
+  --text-secondary: #5A5A72;
+  --text-light: #F8F7F4;
+  --mood-happy: #FF6B47;
+  --mood-neutral: #4ECDC4;
+  --mood-shock: #9B8FD4;
+  --mood-sad: #6B7FD4;
+  --mood-calm: var(--mood-neutral);
+  --mood-energetic: var(--mood-shock);
+  --font-tech: "Unbounded", sans-serif;
+  --font-editorial: "Fraunces", serif;
+  --font-body: "Bricolage Grotesque", sans-serif;
+  --font-hand: "Caveat", cursive;
+  --font-scrawl: "Kalam", cursive;
+  --font-display: "Fraunces", serif;
+  --radius-card: 20px;
+  --transition: 250ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: auto;
+  overflow: hidden;
+}
+
+body {
+  font-family: var(--font-body);
+  background: var(--bg);
+  color: var(--text-primary);
+  overflow-x: hidden;
+  overflow-y: scroll;
+  cursor: none;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 9990;
+  opacity: 0.4;
+}
+
+#page-landing {
+  background: var(--bg);
+  position: relative;
+}
+
+@keyframes pulse-dot {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+
+  50% {
+    transform: scale(1.5);
+    opacity: 0.6;
+  }
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+button:active {
+  transform: scale(0.97) !important;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 107, 71, 0.3);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 107, 71, 0.5);
+}
+
+@media (max-width: 900px) {
+  nav {
+    padding: 18px 24px;
+  }
+
+  .nav-links {
+    display: none;
+  }
+
+  .hero {
+    grid-template-columns: 1fr;
+    padding: 120px 24px 60px;
+    text-align: center;
+  }
+
+  .hero-left {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .hero-sub {
+    max-width: 100%;
+  }
+
+  .hero-buttons {
+    justify-content: center;
+  }
+
+  .hero-right {
+    width: 100%;
+  }
+
+  .webcam-card {
+    width: 100%;
+    max-width: 400px;
+  }
+
+  .moods-section {
+    padding: 60px 24px;
+  }
+
+  .mood-cards-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .hiw-section {
+    padding: 60px 24px;
+  }
+
+  .hiw-steps {
+    grid-template-columns: 1fr;
+  }
+
+  .hiw-arrow {
+    display: none;
+  }
+
+  .music-section {
+    padding: 60px 24px;
+  }
+
+  #page-login,
+  #page-register {
+    grid-template-columns: 1fr;
+  }
+
+  .auth-left {
+    display: none;
+  }
+
+  .auth-right {
+    padding: 40px 24px;
+  }
+
+  .dash-body {
+    grid-template-columns: 1fr;
+  }
+
+  .dash-nav {
+    padding: 16px 24px;
+  }
+
+  footer {
+    padding: 40px 24px;
+  }
+
+  .footer-inner {
+    flex-direction: column;
+    gap: 20px;
+    text-align: center;
+  }
+
+  .footer-links {
+    justify-content: flex-start;
+    flex-wrap: wrap;
+    row-gap: 18px;
+  }
+
+  .footer-social {
+    justify-content: flex-start;
+  }
+}

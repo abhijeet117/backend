@@ -1,0 +1,73 @@
+.sp-bar {
+  position: relative;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  margin-bottom: 8px;
+}
+.sp-bar-track {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  height: 3px;
+  background: rgba(255,255,255,0.1);
+  border-radius: 3px;
+}
+.sp-bar-fill {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  height: 3px;
+  width: 45%;
+  background: linear-gradient(90deg, var(--accent-coral), var(--accent-lavender));
+  border-radius: 3px;
+  transition: width 120ms linear;
+}
+.sp-bar-thumb {
+  position: absolute;
+  top: 50%;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--accent-coral);
+  box-shadow: 0 0 0 4px rgba(255,107,71,0.18);
+  transform: translate(-50%, -50%);
+  transition: left 120ms linear, transform 120ms ease;
+}
+.sp-bar-range {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  background: transparent;
+  cursor: pointer;
+  -webkit-appearance: none;
+  appearance: none;
+}
+.sp-bar-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+}
+.sp-bar-range::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border: none;
+}
+.sp-bar:not(.is-disabled):hover .sp-bar-thumb {
+  transform: translate(-50%, -50%) scale(1.06);
+}
+.sp-bar.is-disabled .sp-bar-range {
+  cursor: default;
+  pointer-events: none;
+}
+.sp-bar.is-disabled .sp-bar-thumb {
+  opacity: 0.6;
+}
+

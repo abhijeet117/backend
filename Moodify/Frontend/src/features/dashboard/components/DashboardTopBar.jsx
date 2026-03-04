@@ -1,3 +1,4 @@
+import "./DashboardTopBar.scss";
 function DashboardTopBar({ displayName, avatarLabel, isMenuOpen, onToggleMenu, onProfile, onLogout }) {
   return (
     <nav className="dash-nav">
@@ -37,3 +38,4 @@ function DashboardTopBar({ displayName, avatarLabel, isMenuOpen, onToggleMenu, o
 }
 
 export default DashboardTopBar;
+

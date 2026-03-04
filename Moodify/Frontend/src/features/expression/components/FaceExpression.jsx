@@ -1,5 +1,6 @@
 import React from "react";
 import { useExpressionDetector } from "../utils/utils";
+import "./FaceExpression.scss";
 
 const FaceExpression = () => {
   const { videoRef, expression } = useExpressionDetector();

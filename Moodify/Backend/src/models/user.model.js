@@ -4,7 +4,7 @@ const expressionHistorySchema = new mongoose.Schema(
     {
         mood: {
             type: String,
-            enum: ["Happy", "Calm", "Energetic", "Melancholy"],
+            enum: ["Happy", "Neutral", "Shock", "Sad"],
             required: true
         },
         capturedAt: {

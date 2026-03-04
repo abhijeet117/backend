@@ -1,10 +1,25 @@
-function WebcamCard({ videoRef, onCapture, moodClassName, moodLabel, cameraStatusText, canCapture }) {
+import "./WebcamCard.scss";
+function WebcamCard({
+  videoRef,
+  onCapture,
+  onStartAgain,
+  moodClassName,
+  moodLabel,
+  cameraStatusText,
+  canCapture,
+  canStartAgain,
+  isCaptured,
+}) {
+  const handlePrimaryAction = isCaptured ? onStartAgain : onCapture;
+  const isButtonDisabled = isCaptured ? !canStartAgain : !canCapture;
+  const buttonText = isCaptured ? "Start Again" : "Capture";
+
   return (
     <div className={`webcam-detect-card ${moodClassName || "happy"}`} id="detectCard">
       <div className="webcam-detect-header">
         <div className="detect-status">
           <div className="live-dot"></div>
-          MediaPipe Active
+          {isCaptured ? "Capture Paused" : "MediaPipe Active"}
         </div>
         <div className="mood-tag-card">{moodLabel || "Ready to capture"}</div>
       </div>
@@ -15,12 +30,18 @@ function WebcamCard({ videoRef, onCapture, moodClassName, moodLabel, cameraStatu
           <div className="scan-line-dash"></div>
         </div>
 
-        <video ref={videoRef} className="webcam-feed-video" autoPlay playsInline muted />
+        <video
+          ref={videoRef}
+          className={`webcam-feed-video${isCaptured ? " is-captured" : ""}`}
+          autoPlay
+          playsInline
+          muted
+        />
 
         <div className="webcam-capture-controls">
           <p className="cam-text">{cameraStatusText}</p>
-          <button type="button" className="btn-start-cam" onClick={onCapture} disabled={!canCapture}>
-            Capture
+          <button type="button" className="btn-start-cam" onClick={handlePrimaryAction} disabled={isButtonDisabled}>
+            {buttonText}
           </button>
         </div>
       </div>
@@ -29,3 +50,4 @@ function WebcamCard({ videoRef, onCapture, moodClassName, moodLabel, cameraStatu
 }
 
 export default WebcamCard;
+

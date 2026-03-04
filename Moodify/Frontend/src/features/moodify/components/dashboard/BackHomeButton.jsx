@@ -1,6 +1,7 @@
 import { useCallback } from "react";
-import backHomeHtml from "../../assets/fragments/dashboard/back-home-button.html?raw";
+import { backHomeHtml } from "../../assets/templates/fragments.js";
 import HtmlFragment from "../common/HtmlFragment.jsx";
+import "./BackHomeButton.scss";
 
 function BackHomeButton({ onBackHome }) {
   const handleReady = useCallback(

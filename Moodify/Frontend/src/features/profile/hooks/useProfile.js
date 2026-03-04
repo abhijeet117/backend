@@ -5,9 +5,9 @@ import { getExpressionHistoryApi, getProfileApi } from "../services/profile.api.
 
 const MOOD_COLOR_MAP = {
   Happy: "var(--mood-happy)",
-  Calm: "var(--mood-calm)",
-  Energetic: "var(--mood-energetic)",
-  Melancholy: "var(--mood-sad)",
+  Neutral: "var(--mood-neutral)",
+  Shock: "var(--mood-shock)",
+  Sad: "var(--mood-sad)",
 };
 
 function formatHistoryTime(isoDate) {
@@ -90,8 +90,8 @@ function useProfile() {
     () =>
       history.map((item, index) => ({
         id: item?._id || `${item?.mood || "mood"}-${item?.capturedAt || index}-${index}`,
-        mood: item?.mood || "Calm",
-        color: MOOD_COLOR_MAP[item?.mood] || "var(--mood-calm)",
+        mood: item?.mood || "Neutral",
+        color: MOOD_COLOR_MAP[item?.mood] || "var(--mood-neutral)",
         timeLabel: formatHistoryTime(item?.capturedAt),
       })),
     [history]

@@ -1,5 +1,3 @@
-import { useCallback } from "react";
-import { useNavigate } from "react-router-dom";
 import DashboardTopBar from "../features/dashboard/components/DashboardTopBar.jsx";
 import { useFaceMood } from "../features/dashboard/hooks/useFaceMood.js";
 import { useDashboardUserMenu } from "../features/dashboard/hooks/useDashboardUserMenu.js";
@@ -13,17 +11,22 @@ import {
 } from "../features/moodify/runtime/useMoodifyEffects.js";
 
 function DashboardPage() {
-  const navigate = useNavigate();
   const { isMenuOpen, displayName, avatarLabel, toggleMenu, goProfile, logout } = useDashboardUserMenu();
-  const { videoRef, handleCapture, moodViewModel, moodClassName, moodLabel, cameraStatusText, canCapture } =
-    useFaceMood();
+  const {
+    videoRef,
+    handleCapture,
+    handleStartAgain,
+    isCaptured,
+    moodViewModel,
+    moodClassName,
+    moodLabel,
+    cameraStatusText,
+    canCapture,
+    canStartAgain,
+  } = useFaceMood();
 
   useMoodifyCursorEffects();
   useMoodifyDashboardEffects();
-
-  const goHome = useCallback(() => {
-    navigate("/");
-  }, [navigate]);
 
   return (
     <>
@@ -45,10 +48,13 @@ function DashboardPage() {
               <WebcamCard
                 videoRef={videoRef}
                 onCapture={handleCapture}
+                onStartAgain={handleStartAgain}
+                isCaptured={isCaptured}
                 moodClassName={moodClassName}
                 moodLabel={moodLabel}
                 cameraStatusText={cameraStatusText}
                 canCapture={canCapture}
+                canStartAgain={canStartAgain}
               />
             </div>
 
@@ -58,7 +64,7 @@ function DashboardPage() {
             </div>
           </div>
 
-          <DashboardSidebar onBackHome={goHome} />
+          <DashboardSidebar />
         </div>
       </div>
     </>

@@ -4,6 +4,9 @@ import { useDashboardUserMenu } from "../../dashboard/hooks/useDashboardUserMenu
 import MoodifyOverlays from "../../moodify/components/common/MoodifyOverlays.jsx";
 import { useMoodifyCursorEffects } from "../../moodify/runtime/useMoodifyEffects.js";
 import { useProfile } from "../hooks/useProfile.js";
+import "../../moodify/components/dashboard/DashboardSidebar.scss";
+import "../../moodify/components/dashboard/MoodHistory.scss";
+import "../../moodify/components/dashboard/MoodStatus.scss";
 
 function ProfilePage() {
   const { profile, historyItems, loading, error, loadProfile } = useProfile();
@@ -54,7 +57,7 @@ function ProfilePage() {
           <div className="dash-sidebar">
             <div>
               <div className="dash-section-label">Face Expression History</div>
-              <div className="mood-history-card">
+              <div className="mood-history-card profile-history-scroll">
                 <div className="mh-title">Recent Captures</div>
                 {loading ? <div className="mh-time">Loading...</div> : null}
                 {error ? <div className="mh-time" style={{ color: "var(--accent-coral)" }}>{error}</div> : null}

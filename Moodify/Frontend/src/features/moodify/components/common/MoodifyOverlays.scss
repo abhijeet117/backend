@@ -1,0 +1,57 @@
+/* CUSTOM CURSOR */
+:root {
+  --cx: 0px;
+  --cy: 0px;
+}
+.cursor {
+  width: 10px; height: 10px;
+  background: var(--accent-coral);
+  border-radius: 50%;
+  position: fixed; top: 0; left: 0;
+  pointer-events: none;
+  z-index: 9999;
+  /* Snap instantly via CSS custom properties — zero JS lag */
+  transform: translate(var(--cx), var(--cy)) translate(-50%, -50%);
+  will-change: transform;
+  contain: layout style;
+}
+.cursor-ring {
+  width: 38px; height: 38px;
+  border: 1.5px solid var(--accent-coral);
+  border-radius: 50%;
+  position: fixed; top: 0; left: 0;
+  pointer-events: none;
+  z-index: 9998;
+  opacity: 0.4;
+  will-change: transform;
+  contain: layout style;
+  /* Ring trails behind — set by RAF lerp */
+  transform: translate(-50%, -50%);
+}
+
+
+.scroll-progress {
+  position: fixed;
+  top: 0; left: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--accent-coral), var(--accent-lavender));
+  z-index: 200;
+  width: 0%;
+  transition: width 0.05s linear;
+  box-shadow: 0 0 8px rgba(255,107,71,0.5);
+}
+
+/* Mouse-move glow that follows cursor */
+.cursor-glow {
+  position: fixed;
+  width: 300px; height: 300px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255,107,71,0.06) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+  transform: translate(-50%, -50%);
+  transition: left 0.1s ease, top 0.1s ease;
+  mix-blend-mode: normal;
+}
+
+

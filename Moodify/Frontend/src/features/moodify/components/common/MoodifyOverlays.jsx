@@ -1,8 +1,14 @@
-import overlaysHtml from "../../assets/fragments/common/overlays.html?raw";
-import HtmlFragment from "./HtmlFragment.jsx";
-
+import "./MoodifyOverlays.scss";
 function MoodifyOverlays() {
-  return <HtmlFragment html={overlaysHtml} />;
+  return (
+    <>
+      <div className="scroll-progress" id="scrollProgress"></div>
+      <div className="cursor-glow" id="cursorGlow"></div>
+      <div className="cursor" id="cursor"></div>
+      <div className="cursor-ring" id="cursorRing"></div>
+    </>
+  );
 }
 
 export default MoodifyOverlays;
+

@@ -1,43 +1,50 @@
 const EXPRESSION_TO_MOOD = {
   Smile: "Happy",
-  Neutral: "Calm",
-  Shock: "Energetic",
-  Sad: "Melancholy",
+  Happy: "Happy",
+  happy: "Happy",
+  Neutral: "Neutral",
+  neutral: "Neutral",
+  Shock: "Shock",
+  shock: "Shock",
+  Surprise: "Shock",
+  surprise: "Shock",
+  Sad: "Sad",
+  sad: "Sad",
 };
 
 const MOOD_VIEW_MODEL = {
   Happy: {
-    title: "Makes You Dance ✓",
+    title: "makes you dance \u2713",
     mood: "Happy",
-    description: "Bright upbeat tracks to amplify your joy and keep the energy flowing all day.",
+    description: "Bright upbeat tracks to amplify joy and keep energy flowing.",
     genre: "Feel-Good Pop",
     className: "happy",
   },
-  Calm: {
-    title: "breathe slowly ~",
-    mood: "Calm",
-    description: "Ambient soundscapes and soft instrumentals for your quietest, clearest moments.",
-    genre: "Lo-Fi Ambient",
-    className: "calm",
+  Neutral: {
+    title: "just breathe ~",
+    mood: "Neutral",
+    description: "Balanced background music for focus and calm moments.",
+    genre: "Chill / Lo-Fi",
+    className: "neutral",
   },
-  Energetic: {
+  Shock: {
     title: "let's go!!",
-    mood: "Energetic",
-    description: "High-octane beats and anthems engineered to push you past every limit.",
+    mood: "Shock",
+    description: "High-energy beats and powerful drops for adrenaline moments.",
     genre: "Electro / EDM",
-    className: "energetic",
+    className: "shock",
   },
-  Melancholy: {
-    title: "it's okay to feel ♡",
-    mood: "Melancholy",
-    description: "Soulful indie and cinematic scores that sit with you through the hard ones.",
+  Sad: {
+    title: "it's okay to feel \u2661",
+    mood: "Sad",
+    description: "Emotional indie and soft cinematic songs.",
     genre: "Indie Soul",
     className: "sad",
   },
 };
 
 function mapExpressionToMood(expression) {
-  return EXPRESSION_TO_MOOD[expression] || "Calm";
+  return EXPRESSION_TO_MOOD[expression] || "Neutral";
 }
 
 function getMoodViewModel(mood) {

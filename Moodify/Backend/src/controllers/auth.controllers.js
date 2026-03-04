@@ -224,7 +224,7 @@ async function saveExpression(req, res) {
     try {
         const payload = extractAuthPayload(req)
         const mood = typeof payload?.mood === "string" ? payload.mood.trim() : ""
-        const allowedMoods = new Set(["Happy", "Calm", "Energetic", "Melancholy"])
+        const allowedMoods = new Set(["Happy", "Neutral", "Shock", "Sad"])
 
         if (!allowedMoods.has(mood)) {
             return res.status(400).json({

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef } from "react";
-import loginFormHtml from "../../assets/fragments/auth/login-form.html?raw";
+import { loginFormHtml } from "../../assets/templates/fragments.js";
 import HtmlFragment from "../common/HtmlFragment.jsx";
+import "./LoginForm.scss";
 
 function LoginForm({ onLogin, onGoRegister, onGoHome, errorMessage, isLoading }) {
   const feedbackElRef = useRef(null);

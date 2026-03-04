@@ -1,0 +1,118 @@
+/* MUSIC PLAYER SIDEBAR */
+.sidebar-player {
+  background: var(--bg-dark);
+  border-radius: 24px;
+  padding: 28px;
+  border: 1px solid rgba(255,255,255,0.06);
+  position: relative;
+  overflow: hidden;
+}
+.sidebar-player::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(255,107,71,0.06) 0%, transparent 70%);
+}
+.sp-label {
+  font-size: 0.7rem; font-weight: 600;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  color: rgba(248,247,244,0.35);
+  margin-bottom: 20px;
+  position: relative; z-index: 1;
+}
+.sp-album {
+  width: 100%;
+  aspect-ratio: 1;
+  max-width: 240px;
+  margin: 0 auto 24px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #FF6B47, #9B8FD4 50%, #4ECDC4);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 4rem;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+  position: relative; z-index: 1;
+  animation: album-glow 4s ease-in-out infinite;
+}
+@keyframes album-glow {
+  0%, 100% { box-shadow: 0 20px 50px rgba(0,0,0,0.3), 0 0 0 0 rgba(255,107,71,0); }
+  50% { box-shadow: 0 20px 50px rgba(0,0,0,0.3), 0 0 40px rgba(255,107,71,0.2); }
+}
+.sp-track-name {
+  font-family: var(--font-editorial);
+  font-style: italic;
+  font-size: 1.3rem;
+  color: var(--text-light);
+  letter-spacing: -0.02em;
+  text-align: center;
+  margin-bottom: 4px;
+  position: relative; z-index: 1;
+}
+.sp-track-artist {
+  font-size: 0.85rem;
+  color: rgba(248,247,244,0.4);
+  text-align: center;
+  margin-bottom: 24px;
+  font-weight: 300;
+  font-family: var(--font-body);
+  position: relative; z-index: 1;
+}
+.sp-controls {
+  display: flex; align-items: center; justify-content: center;
+  gap: 20px;
+  margin-bottom: 20px;
+  position: relative; z-index: 1;
+}
+.sp-ctrl {
+  background: transparent;
+  border: none;
+  color: rgba(248,247,244,0.4);
+  cursor: none; font-size: 1rem;
+  transition: all var(--transition);
+}
+.sp-ctrl:hover { color: var(--text-light); transform: scale(1.1); }
+.sp-play {
+  width: 52px; height: 52px;
+  background: var(--accent-coral);
+  border: none; border-radius: 50%;
+  color: white; font-size: 1.2rem;
+  cursor: none;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 8px 24px rgba(255,107,71,0.4);
+  transition: all var(--transition);
+}
+.sp-play:hover { transform: scale(1.08); }
+.sp-progress {
+  position: relative; z-index: 1;
+}
+
+.sp-times {
+  display: flex; justify-content: space-between;
+  font-size: 0.7rem;
+  color: rgba(248,247,244,0.25);
+}
+
+/* EQ VIZ */
+.sp-eq {
+  display: flex; align-items: flex-end; justify-content: center;
+  width: min(92%, 320px);
+  margin: 16px auto 0;
+  justify-content: space-between;
+  gap: 4px; height: 30px;
+  position: relative; z-index: 1;
+}
+.sp-eq-bar {
+  width: 4px;
+  background: linear-gradient(to top, var(--accent-coral), var(--accent-lavender));
+  border-radius: 3px;
+  animation: sp-eq-anim var(--d) ease-in-out infinite alternate;
+  opacity: 0.7;
+}
+@keyframes sp-eq-anim {
+  from { height: 4px; opacity: 0.4; }
+  to { height: var(--h); opacity: 0.9; }
+}
+
+#page-dashboard .sp-play,
+#page-dashboard .sp-ctrl {
+  transition: background-color var(--transition), color var(--transition), border-color var(--transition), box-shadow var(--transition), transform var(--transition);
+}
+
