@@ -22,7 +22,7 @@ const heroHtml = `<section class="hero">
     <div class="hero-left">
       <div class="hero-eyebrow">&#10022; AI-Powered Music Intelligence</div>
       <h1 class="hero-heading"><span class="word-tech">MOODIFY</span><br><span class="word-hand">Your Mood.</span><br><em style="font-style:italic">Your Music.</em><br>Instantly.</h1>
-      <p class="hero-sub">Moodify reads your facial expressions in real-time and curates the perfect soundtrack for how you feel &#8212; no skipping, no searching, just listening.</p>
+      <p class="hero-sub">Moodify reads your facial expressions in real-time and curates the perfect soundtrack for how you feel  no skipping, no searching, just listening.</p>
       <div class="hero-buttons">
         <button class="btn-primary">
           <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>

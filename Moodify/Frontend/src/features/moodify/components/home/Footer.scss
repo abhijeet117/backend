@@ -63,4 +63,43 @@ footer {
   transform: translateY(-1px);
 }
 
+@media (max-width: 1199px) {
+  footer {
+    padding: 48px 32px;
+  }
+
+  .footer-inner {
+    flex-direction: column;
+    gap: 18px;
+    align-items: center;
+    text-align: center;
+  }
+
+  .footer-links {
+    width: 100%;
+    justify-content: center;
+    gap: 24px;
+    row-gap: 14px;
+  }
+
+  .footer-social {
+    justify-content: center;
+    margin-top: 4px;
+  }
+}
+
+@media (max-width: 767px) {
+  footer {
+    padding: 40px 16px;
+  }
+
+  .footer-text,
+  .footer-links a {
+    font-size: 0.8rem;
+  }
+
+  .footer-links {
+    gap: 16px;
+  }
+}
 

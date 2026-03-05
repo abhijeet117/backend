@@ -178,4 +178,87 @@
   to { height: var(--h); }
 }
 
+@media (max-width: 1199px) {
+  .music-section {
+    padding: 80px 32px;
+  }
+
+  .music-section-heading {
+    margin-bottom: 44px;
+  }
+
+  .player-card {
+    padding: 30px;
+  }
+
+  .player-top {
+    gap: 22px;
+    margin-bottom: 28px;
+  }
+
+  .player-album {
+    width: 94px;
+    height: 94px;
+  }
+}
+
+@media (max-width: 767px) {
+  .music-section {
+    padding: 64px 16px;
+  }
+
+  .music-section-heading {
+    font-size: clamp(1.65rem, 8vw, 2.2rem);
+    margin-bottom: 32px;
+  }
+
+  .player-card {
+    border-radius: 20px;
+    padding: 20px 16px;
+  }
+
+  .player-top {
+    flex-direction: column;
+    gap: 14px;
+    text-align: center;
+    margin-bottom: 22px;
+  }
+
+  .player-album {
+    width: 82px;
+    height: 82px;
+    box-shadow: 0 10px 24px rgba(255,107,71,0.28);
+  }
+
+  .player-track-name {
+    font-size: 1.25rem;
+    margin-bottom: 4px;
+  }
+
+  .player-track-artist {
+    font-size: 0.82rem;
+  }
+
+  .player-controls {
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+
+  .play-btn {
+    width: 48px;
+    height: 48px;
+  }
+
+  .ctrl-btn {
+    padding: 6px;
+  }
+
+  .progress-times {
+    font-size: 0.7rem;
+  }
+
+  .eq-bg {
+    height: 90px;
+  }
+}
 

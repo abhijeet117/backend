@@ -1,9 +1,28 @@
-import { useCallback } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { registerFormHtml } from "../../assets/templates/fragments.js";
 import HtmlFragment from "../common/HtmlFragment.jsx";
 import "./RegisterForm.scss";
 
-function RegisterForm({ onRegister, onGoLogin, onGoHome }) {
+function RegisterForm({ onRegister, onGoLogin, onGoHome, errorMessage, isLoading }) {
+  const feedbackElRef = useRef(null);
+  const errorRef = useRef(errorMessage);
+  const loadingRef = useRef(isLoading);
+
+  useEffect(() => {
+    errorRef.current = errorMessage;
+    loadingRef.current = isLoading;
+
+    if (!feedbackElRef.current) {
+      return;
+    }
+
+    const feedbackText = errorRef.current || (loadingRef.current ? "Creating account..." : "");
+    feedbackElRef.current.textContent = feedbackText || "\u00A0";
+    feedbackElRef.current.style.visibility = feedbackText ? "visible" : "hidden";
+    feedbackElRef.current.style.color = errorRef.current ? "var(--accent-coral)" : "var(--text-secondary)";
+    feedbackElRef.current.setAttribute("role", errorRef.current ? "alert" : "status");
+  }, [errorMessage, isLoading]);
+
   const handleReady = useCallback(
     (node) => {
       const registerButton = node.querySelector(".btn-form-primary");
@@ -11,10 +30,18 @@ function RegisterForm({ onRegister, onGoLogin, onGoHome }) {
       const emailInput = node.querySelector("#register-email");
       const usernameInput = node.querySelector("#register-username");
       const passwordInput = node.querySelector("#register-password");
+      const passwordGroup = passwordInput?.closest(".form-group");
       const formLinks = node.querySelectorAll(".form-link");
       const loginLink = formLinks[0];
       const homeLink = formLinks[1];
       const normalizedLinks = [loginLink, homeLink].filter(Boolean);
+
+      const feedbackEl = document.createElement("p");
+      feedbackEl.className = "form-link-text auth-form-feedback";
+      feedbackEl.textContent = "\u00A0";
+      feedbackEl.style.visibility = "hidden";
+      passwordGroup?.insertAdjacentElement("afterend", feedbackEl);
+      feedbackElRef.current = feedbackEl;
 
       const handleRegister = (event) => {
         event.preventDefault();
@@ -62,6 +89,10 @@ function RegisterForm({ onRegister, onGoLogin, onGoHome }) {
         normalizedLinks.forEach((link) => {
           link.removeEventListener("keydown", handleLinkKeydown);
         });
+        if (feedbackElRef.current) {
+          feedbackElRef.current.remove();
+          feedbackElRef.current = null;
+        }
       };
     },
     [onGoHome, onGoLogin, onRegister]

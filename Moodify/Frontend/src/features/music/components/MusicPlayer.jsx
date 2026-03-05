@@ -141,6 +141,12 @@ function MusicPlayer() {
     isSeekingRef.current = isSeeking;
   }, [isSeeking]);
 
+  useEffect(() => {
+    void loadYouTubeIframeApi().catch(() => {
+      // Best-effort warmup for faster first YouTube playback.
+    });
+  }, []);
+
   const stopYouTubeProgressTimer = useCallback(() => {
     if (youtubeProgressTimerRef.current) {
       clearInterval(youtubeProgressTimerRef.current);
@@ -655,6 +661,7 @@ function MusicPlayer() {
         <audio
           ref={audioRef}
           src={currentSong?.songUrl || ""}
+          preload="auto"
           autoPlay
           onLoadStart={handleLoadStart}
           onPlay={() => {

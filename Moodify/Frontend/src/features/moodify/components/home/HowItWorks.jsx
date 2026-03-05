@@ -18,7 +18,7 @@ const howItWorksHtml = `<section class="hiw-section" id="how-it-works">
           </svg>
         </span>
         <div class="hiw-step-title">Camera scans your face</div>
-        <p class="hiw-step-text">MediaPipe Face Landmarker maps 478 facial points in real-time &#8212; zero data stored, fully private.</p>
+        <p class="hiw-step-text">MediaPipe Face Landmarker maps 478 facial points in real-time  zero data stored, fully private.</p>
       </div>
       <div class="hiw-arrow reveal reveal-delay-1">
         <svg width="32" height="32" viewBox="0 0 32 32" fill="none"><path d="M6 16 H26 M20 10 L26 16 L20 22" stroke="rgba(255,107,71,0.35)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -56,7 +56,7 @@ const howItWorksHtml = `<section class="hiw-section" id="how-it-works">
           </svg>
         </span>
         <div class="hiw-step-title">Music plays automatically</div>
-        <p class="hiw-step-text">A handcrafted playlist for your exact mood loads and plays &#8212; adaptive, fluid, and always evolving.</p>
+        <p class="hiw-step-text">A handcrafted playlist for your exact mood loads and plays  adaptive, fluid, and always evolving.</p>
       </div>
     </div>
   </section>`;

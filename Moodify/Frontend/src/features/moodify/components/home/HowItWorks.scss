@@ -96,4 +96,47 @@
   font-family: var(--font-body);
 }
 
+@media (max-width: 1199px) {
+  .hiw-section {
+    padding: 80px 32px;
+  }
+
+  .hiw-heading {
+    margin-bottom: 56px;
+  }
+
+  .hiw-steps {
+    grid-template-columns: 1fr;
+    gap: 24px;
+    max-width: 640px;
+  }
+
+  .hiw-arrow {
+    display: none;
+  }
+
+  .hiw-step {
+    padding: 0;
+  }
+}
+
+@media (max-width: 767px) {
+  .hiw-section {
+    padding: 64px 16px;
+  }
+
+  .hiw-heading {
+    font-size: clamp(1.7rem, 9vw, 2.3rem);
+    margin-bottom: 34px;
+  }
+
+  .hiw-step-title {
+    font-size: 1.06rem;
+  }
+
+  .hiw-step-text {
+    font-size: 0.9rem;
+    line-height: 1.55;
+  }
+}
 

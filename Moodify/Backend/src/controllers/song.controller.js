@@ -2,6 +2,7 @@ const songModel = require("../models/song.model");
 const { uploadSong, uploadPoster, safeDeleteFromImageKit } = require("../services/imagekit.service");
 const NodeID3 = require("node-id3");
 const path = require("path");
+const redis = require("../config/cache");
 
 const ALLOWED_MOODS = new Set(["happy", "neutral", "shock", "sad"]);
 const MOOD_QUERY_MAP = {
@@ -13,6 +14,7 @@ const MOOD_QUERY_MAP = {
 const AUDIO_MIME_PREFIX = "audio/"; 
 const IMAGE_MIME_PREFIX = "image/";
 const DEFAULT_POSTER_URL = "https://placehold.co/600x600/png?text=Moodify";
+const SONG_CACHE_TTL_SECONDS = Number(process.env.SONG_CACHE_TTL_SECONDS || 3600);
 const MIME_TO_EXTENSION = {
   "image/jpeg": ".jpg",
   "image/jpg": ".jpg",
@@ -60,6 +62,65 @@ function normalizeMood(value) {
   }
 
   return value.trim().toLowerCase();
+}
+
+function isRedisReady() {
+  return redis && typeof redis.get === "function" && redis.status === "ready";
+}
+
+function getMoodSongsCacheKey(mood) {
+  return `songs:mood:${mood}`;
+}
+
+async function readMoodSongsFromCache(mood) {
+  if (!isRedisReady()) {
+    return null;
+  }
+
+  try {
+    const rawValue = await redis.get(getMoodSongsCacheKey(mood));
+    if (!rawValue) {
+      return null;
+    }
+
+    const parsed = JSON.parse(rawValue);
+    return Array.isArray(parsed) ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+
+async function writeMoodSongsToCache(mood, songs) {
+  if (!isRedisReady() || !Array.isArray(songs)) {
+    return;
+  }
+
+  try {
+    const payload = JSON.stringify(songs);
+    if (Number.isFinite(SONG_CACHE_TTL_SECONDS) && SONG_CACHE_TTL_SECONDS > 0) {
+      await redis.set(getMoodSongsCacheKey(mood), payload, "EX", SONG_CACHE_TTL_SECONDS);
+      return;
+    }
+
+    await redis.set(getMoodSongsCacheKey(mood), payload);
+  } catch {
+    // Cache write failures should not affect API response.
+  }
+}
+
+async function invalidateMoodSongsCache() {
+  if (!isRedisReady()) {
+    return;
+  }
+
+  try {
+    const keys = [...ALLOWED_MOODS].map((mood) => getMoodSongsCacheKey(mood));
+    if (keys.length > 0) {
+      await redis.del(...keys);
+    }
+  } catch {
+    // Cache invalidation failures should not break write flow.
+  }
 }
 
 function fallbackTitleFromFileName(fileName) {
@@ -191,6 +252,7 @@ async function createSong(req, res) {
       mood: createdSong.mood,
       songUrl: createdSong.songUrl,
     });
+    await invalidateMoodSongsCache();
 
     return res.status(201).json({
       success: true,
@@ -225,12 +287,27 @@ async function getSongsByMood(req, res) {
       });
     }
 
+    const cachedSongs = await readMoodSongsFromCache(mood);
+    if (cachedSongs) {
+      debugSongLog("Songs cache hit", {
+        mood,
+        totalSongs: cachedSongs.length,
+      });
+
+      return res.status(200).json({
+        success: true,
+        songs: cachedSongs,
+        cached: true,
+      });
+    }
+
     const moodFilter = MOOD_QUERY_MAP[mood] || [mood];
     const songs = await songModel
       .find({ mood: { $in: moodFilter } })
       .select("title artist mood songUrl posterUrl")
       .sort({ createdAt: -1 })
       .lean();
+    void writeMoodSongsToCache(mood, songs);
     debugSongLog("Songs fetched for mood", {
       mood,
       totalSongs: songs.length,

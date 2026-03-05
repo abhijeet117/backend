@@ -134,4 +134,111 @@
 }
 .form-link:hover { text-decoration: underline; }
 
+/* Register page: keep the form card perfectly fitted in the viewport */
+#page-register {
+  height: 100dvh;
+  min-height: 100dvh;
+  overflow: hidden;
+}
+
+#page-register .auth-right {
+  padding: clamp(20px, 3.4vh, 48px) clamp(24px, 4vw, 60px);
+  overflow: hidden;
+}
+
+#page-register .form-card {
+  max-width: min(420px, 100%);
+  max-height: calc(100dvh - clamp(40px, 6.8vh, 110px));
+  padding: clamp(28px, 3.4vh, 48px) clamp(26px, 2.4vw, 44px);
+  display: flex;
+  flex-direction: column;
+  overflow: auto;
+}
+
+#page-register .form-subtitle {
+  margin-bottom: clamp(18px, 2.6vh, 36px);
+}
+
+#page-register .form-group {
+  margin-bottom: clamp(12px, 1.7vh, 20px);
+}
+
+#page-register .btn-form-primary {
+  margin-top: clamp(4px, 1vh, 8px);
+}
+
+#page-register .form-divider {
+  margin: clamp(14px, 2vh, 24px) 0;
+}
+
+@media (max-width: 1199px) {
+  .auth-right {
+    padding: 40px 28px;
+  }
+
+  .form-card {
+    max-width: 460px;
+    padding: 40px 34px;
+  }
+}
+
+@media (max-width: 767px) {
+  #page-register {
+    height: auto;
+    min-height: 100dvh;
+    overflow: visible;
+  }
+
+  #page-register .auth-right {
+    padding: 18px 14px;
+    align-items: flex-start;
+    overflow: visible;
+  }
+
+  .form-card,
+  #page-register .form-card {
+    max-width: none;
+    max-height: none;
+    overflow: visible;
+    border-radius: 20px;
+    padding: 28px 18px;
+    box-shadow: 0 14px 34px rgba(0,0,0,0.08);
+  }
+
+  .form-title {
+    font-size: 1.7rem;
+  }
+
+  .form-subtitle {
+    font-size: 0.98rem;
+    margin-bottom: 24px;
+  }
+
+  .form-group,
+  #page-register .form-group {
+    margin-bottom: 14px;
+  }
+
+  .form-input {
+    padding: 13px 14px;
+    font-size: 0.92rem;
+  }
+
+  .btn-form-primary,
+  #page-register .btn-form-primary {
+    min-height: 46px;
+    padding: 14px;
+    font-size: 0.9rem;
+    margin-top: 6px;
+  }
+
+  .form-divider,
+  #page-register .form-divider {
+    margin: 18px 0;
+  }
+
+  .form-link-text {
+    font-size: 0.83rem;
+  }
+}
 

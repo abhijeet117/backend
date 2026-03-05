@@ -144,4 +144,54 @@
   will-change: transform;
 }
 
+@media (max-width: 1199px) {
+  .moods-section {
+    padding: 72px 32px;
+  }
+
+  .moods-heading {
+    margin-bottom: 46px;
+  }
+
+  .mood-cards-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px;
+    max-width: 920px;
+  }
+}
+
+@media (max-width: 767px) {
+  .moods-section {
+    padding: 56px 16px;
+  }
+
+  .moods-heading {
+    margin-bottom: 32px;
+    font-size: clamp(1.7rem, 9vw, 2.35rem);
+  }
+
+  .mood-cards-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .mood-card {
+    border-radius: 20px;
+    padding: 28px 22px;
+  }
+
+  .mood-emoji {
+    width: 64px;
+    height: 64px;
+    margin-bottom: 14px;
+  }
+
+  .mood-title {
+    font-size: 1.35rem;
+  }
+
+  .mood-sub {
+    font-size: 0.9rem;
+  }
+}
 

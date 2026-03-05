@@ -25,7 +25,7 @@ const registerFormHtml = String.raw`<div class="form-card">
       
       <div class="form-group">
         <label class="form-label" for="register-full-name">Full Name</label>
-        <input id="register-full-name" type="text" class="form-input" placeholder="Abhijeet Sharma">
+        <input id="register-full-name" type="text" class="form-input" placeholder="Abhijeet">
       </div>
       <div class="form-group">
         <label class="form-label" for="register-email">Email</label>

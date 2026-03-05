@@ -1,5 +1,5 @@
 import "./DashboardTopBar.scss";
-function DashboardTopBar({ displayName, avatarLabel, isMenuOpen, onToggleMenu, onProfile, onLogout }) {
+function DashboardTopBar({ displayName, avatarLabel, isMenuOpen, onToggleMenu, onDashboard, onProfile, onLogout }) {
   return (
     <nav className="dash-nav">
       <div className="dash-logo">
@@ -24,6 +24,9 @@ function DashboardTopBar({ displayName, avatarLabel, isMenuOpen, onToggleMenu, o
 
         {isMenuOpen ? (
           <div className="dash-user-dropdown" role="menu">
+            <button type="button" className="dash-user-item" role="menuitem" onClick={onDashboard}>
+              Dashboard
+            </button>
             <button type="button" className="dash-user-item" role="menuitem" onClick={onProfile}>
               My Profile
             </button>

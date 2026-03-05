@@ -15,10 +15,25 @@ async function parseJson(response) {
     return {};
   }
 
+  const contentType = response.headers.get("content-type") || "";
+
   try {
     return JSON.parse(text);
   } catch {
-    return {};
+    const trimmed = text.trim();
+    if (!trimmed) {
+      return {};
+    }
+
+    if (!contentType.includes("application/json")) {
+      if (trimmed.startsWith("<!DOCTYPE") || trimmed.startsWith("<html")) {
+        return {
+          message: response.statusText || `Request failed with status ${response.status}.`,
+        };
+      }
+    }
+
+    return { message: trimmed };
   }
 }
 
@@ -41,7 +56,7 @@ async function requestAuth(path, options = {}) {
   const payload = await parseJson(response);
 
   if (!response.ok) {
-    throw new ApiError(payload.message || "Request failed.", response.status, payload);
+    throw new ApiError(payload.message || `Request failed with status ${response.status}.`, response.status, payload);
   }
 
   return payload;

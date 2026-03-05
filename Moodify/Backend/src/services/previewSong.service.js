@@ -3,12 +3,69 @@ const os = require("os");
 const path = require("path");
 const { spawn } = require("child_process");
 const { uploadPreviewSong } = require("./imagekit.service");
+const redis = require("../config/cache");
 
 const PREVIEW_SOURCE_URL = process.env.PREVIEW_SONG_SOURCE_URL || "https://youtu.be/FF-_QBizdZQ";
+const PREVIEW_SONG_DIRECT_URL = (process.env.PREVIEW_SONG_DIRECT_URL || "").trim();
 const PREVIEW_FILE_BASENAME = "moodify-preview-song";
+const PREVIEW_CACHE_TTL_SECONDS = Number(process.env.PREVIEW_SONG_CACHE_TTL_SECONDS || 60 * 60 * 24 * 7);
+const PREVIEW_CACHE_KEY = `preview-song:${encodeURIComponent(PREVIEW_SOURCE_URL)}`;
 
 let cachedPreview = null;
 let inflightRequest = null; 
+
+function isRedisReady() {
+  return redis && typeof redis.get === "function" && redis.status === "ready";
+}
+
+async function readPreviewFromRedis() {
+  if (!isRedisReady()) {
+    return null;
+  }
+
+  try {
+    const rawValue = await redis.get(PREVIEW_CACHE_KEY);
+    if (!rawValue) {
+      return null;
+    }
+
+    const parsed = JSON.parse(rawValue);
+    if (typeof parsed?.songUrl !== "string" || !parsed.songUrl.trim()) {
+      return null;
+    }
+
+    return {
+      songUrl: parsed.songUrl.trim(),
+      sourceUrl: typeof parsed?.sourceUrl === "string" ? parsed.sourceUrl : PREVIEW_SOURCE_URL,
+      uploadedAt: parsed?.uploadedAt || null,
+    };
+  } catch {
+    return null;
+  }
+}
+
+async function writePreviewToRedis(preview) {
+  if (!isRedisReady() || !preview?.songUrl) {
+    return;
+  }
+
+  try {
+    const payload = JSON.stringify({
+      songUrl: preview.songUrl,
+      sourceUrl: preview.sourceUrl,
+      uploadedAt: preview.uploadedAt,
+    });
+
+    if (Number.isFinite(PREVIEW_CACHE_TTL_SECONDS) && PREVIEW_CACHE_TTL_SECONDS > 0) {
+      await redis.set(PREVIEW_CACHE_KEY, payload, "EX", PREVIEW_CACHE_TTL_SECONDS);
+      return;
+    }
+
+    await redis.set(PREVIEW_CACHE_KEY, payload);
+  } catch {
+    // Cache writes should never block playback responses.
+  }
+}
 
 function runYtDlpDownload(tempDir, sourceUrl) {
   return new Promise((resolve, reject) => {
@@ -125,6 +182,7 @@ async function buildAndUploadPreviewSong() {
       sourceUrl: PREVIEW_SOURCE_URL,
       uploadedAt: new Date().toISOString(),
     };
+    void writePreviewToRedis(cachedPreview);
 
     return {
       ...cachedPreview,
@@ -136,7 +194,30 @@ async function buildAndUploadPreviewSong() {
 }
 
 async function getPreviewSongAsset() {
+  if (PREVIEW_SONG_DIRECT_URL) {
+    cachedPreview = {
+      songUrl: PREVIEW_SONG_DIRECT_URL,
+      sourceUrl: PREVIEW_SOURCE_URL,
+      uploadedAt: cachedPreview?.uploadedAt || new Date().toISOString(),
+    };
+    void writePreviewToRedis(cachedPreview);
+
+    return {
+      ...cachedPreview,
+      cached: true,
+    };
+  }
+
   if (cachedPreview?.songUrl) {
+    return {
+      ...cachedPreview,
+      cached: true,
+    };
+  }
+
+  const redisCachedPreview = await readPreviewFromRedis();
+  if (redisCachedPreview?.songUrl) {
+    cachedPreview = redisCachedPreview;
     return {
       ...cachedPreview,
       cached: true,
@@ -158,6 +239,17 @@ async function getPreviewSongAsset() {
   return inflightRequest;
 }
 
+function warmPreviewSongCache() {
+  if (cachedPreview?.songUrl || inflightRequest) {
+    return;
+  }
+
+  void getPreviewSongAsset().catch(() => {
+    // Warmup is best-effort.
+  });
+}
+
 module.exports = {
   getPreviewSongAsset,
+  warmPreviewSongCache,
 };

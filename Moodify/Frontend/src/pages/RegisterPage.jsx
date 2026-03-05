@@ -48,17 +48,13 @@ function RegisterPage() {
       <div id="page-register">
         <RegisterPanel />
         <div className="auth-right">
-          <RegisterForm onRegister={goDashboard} onGoLogin={goLogin} onGoHome={goHome} />
-          {loading ? (
-            <p className="form-link-text" style={{ marginTop: "12px" }}>
-              Creating account...
-            </p>
-          ) : null}
-          {error ? (
-            <p className="form-link-text" role="alert" style={{ marginTop: "8px", color: "var(--accent-coral)" }}>
-              {error}
-            </p>
-          ) : null}
+          <RegisterForm
+            onRegister={goDashboard}
+            onGoLogin={goLogin}
+            onGoHome={goHome}
+            errorMessage={error}
+            isLoading={loading}
+          />
         </div>
       </div>
     </>

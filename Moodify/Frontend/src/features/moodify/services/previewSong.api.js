@@ -5,7 +5,10 @@ const previewSongClient = axios.create({
   withCredentials: true,
 });
 
-async function getPreviewSongApi() {
+let cachedPreviewPayload = null;
+let previewRequestPromise = null;
+
+async function fetchPreviewSongFromServer() {
   const response = await previewSongClient.get("/");
   const payload = response?.data || {};
 
@@ -21,4 +24,35 @@ async function getPreviewSongApi() {
   };
 }
 
-export { getPreviewSongApi };
+async function getPreviewSongApi({ forceRefresh = false } = {}) {
+  if (!forceRefresh && cachedPreviewPayload?.songUrl) {
+    return cachedPreviewPayload;
+  }
+
+  if (!forceRefresh && previewRequestPromise) {
+    return previewRequestPromise;
+  }
+
+  previewRequestPromise = fetchPreviewSongFromServer()
+    .then((preview) => {
+      cachedPreviewPayload = preview;
+      return preview;
+    })
+    .finally(() => {
+      previewRequestPromise = null;
+    });
+
+  return previewRequestPromise;
+}
+
+function prefetchPreviewSongApi() {
+  if (cachedPreviewPayload?.songUrl || previewRequestPromise) {
+    return;
+  }
+
+  void getPreviewSongApi().catch(() => {
+    // Best-effort prefetch.
+  });
+}
+
+export { getPreviewSongApi, prefetchPreviewSongApi };

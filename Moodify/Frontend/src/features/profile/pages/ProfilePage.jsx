@@ -10,7 +10,7 @@ import "../../moodify/components/dashboard/MoodStatus.scss";
 
 function ProfilePage() {
   const { profile, historyItems, loading, error, loadProfile } = useProfile();
-  const { isMenuOpen, displayName, avatarLabel, toggleMenu, goProfile, logout } = useDashboardUserMenu();
+  const { isMenuOpen, displayName, avatarLabel, toggleMenu, goDashboard, goProfile, logout } = useDashboardUserMenu();
 
   useMoodifyCursorEffects();
 
@@ -27,6 +27,7 @@ function ProfilePage() {
           avatarLabel={avatarLabel}
           isMenuOpen={isMenuOpen}
           onToggleMenu={toggleMenu}
+          onDashboard={goDashboard}
           onProfile={goProfile}
           onLogout={logout}
         />

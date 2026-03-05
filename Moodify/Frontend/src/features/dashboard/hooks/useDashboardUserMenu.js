@@ -25,6 +25,11 @@ function useDashboardUserMenu() {
     navigate("/profile");
   }, [closeMenu, navigate]);
 
+  const goDashboard = useCallback(() => {
+    closeMenu();
+    navigate("/dashboard");
+  }, [closeMenu, navigate]);
+
   const logout = useCallback(async () => {
     closeMenu();
 
@@ -44,6 +49,7 @@ function useDashboardUserMenu() {
     avatarLabel,
     toggleMenu,
     closeMenu,
+    goDashboard,
     goProfile,
     logout,
   };

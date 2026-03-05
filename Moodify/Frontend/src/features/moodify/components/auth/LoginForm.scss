@@ -134,4 +134,60 @@
 }
 .form-link:hover { text-decoration: underline; }
 
+@media (max-width: 1199px) {
+  .auth-right {
+    padding: 40px 28px;
+  }
+
+  .form-card {
+    max-width: 460px;
+    padding: 40px 34px;
+  }
+}
+
+@media (max-width: 767px) {
+  .auth-right {
+    padding: 18px 14px;
+    align-items: flex-start;
+  }
+
+  .form-card {
+    max-width: none;
+    border-radius: 20px;
+    padding: 28px 18px;
+    box-shadow: 0 14px 34px rgba(0,0,0,0.08);
+  }
+
+  .form-title {
+    font-size: 1.7rem;
+  }
+
+  .form-subtitle {
+    font-size: 0.98rem;
+    margin-bottom: 24px;
+  }
+
+  .form-group {
+    margin-bottom: 14px;
+  }
+
+  .form-input {
+    padding: 13px 14px;
+    font-size: 0.92rem;
+  }
+
+  .btn-form-primary {
+    min-height: 46px;
+    padding: 14px;
+    font-size: 0.9rem;
+  }
+
+  .form-divider {
+    margin: 18px 0;
+  }
+
+  .form-link-text {
+    font-size: 0.83rem;
+  }
+}
 

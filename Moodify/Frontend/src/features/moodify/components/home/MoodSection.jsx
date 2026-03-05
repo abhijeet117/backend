@@ -53,13 +53,18 @@ const moodSectionHtml = `<section class="moods-section" id="moods">
         <span class="mood-emoji">
           <svg viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
             <circle cx="40" cy="40" r="36" fill="#F3F0FF" stroke="#9B8FD4" stroke-width="2"/>
-            <circle cx="28" cy="32" r="6" fill="#9B8FD4"/>
-            <circle cx="52" cy="32" r="6" fill="#9B8FD4"/>
-            <circle cx="30" cy="30" r="2" fill="#fff"/>
-            <circle cx="54" cy="30" r="2" fill="#fff"/>
-            <path d="M24 50 Q32 62 40 58 Q48 62 56 50 Q48 54 40 54 Q32 54 24 50Z" fill="#9B8FD4"/>
-            <path d="M8 24 L14 18 L11 24 L17 18" stroke="#9B8FD4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" opacity="0.6"/>
-            <path d="M63 24 L69 18 L66 24 L72 18" stroke="#9B8FD4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" opacity="0.6"/>
+            <path d="M22 24 Q28 18 34 24" stroke="#9B8FD4" stroke-width="2.4" stroke-linecap="round" fill="none"/>
+            <path d="M46 24 Q52 18 58 24" stroke="#9B8FD4" stroke-width="2.4" stroke-linecap="round" fill="none"/>
+            <circle cx="29" cy="34" r="6.5" fill="#9B8FD4"/>
+            <circle cx="51" cy="34" r="6.5" fill="#9B8FD4"/>
+            <circle cx="31" cy="32" r="2.2" fill="#fff"/>
+            <circle cx="53" cy="32" r="2.2" fill="#fff"/>
+            <ellipse cx="40" cy="52" rx="7" ry="10" fill="#9B8FD4"/>
+            <ellipse cx="40" cy="52" rx="3.2" ry="5" fill="#F3F0FF" opacity="0.35"/>
+            <line x1="12" y1="20" x2="16" y2="16" stroke="#9B8FD4" stroke-width="2" stroke-linecap="round" opacity="0.6"/>
+            <line x1="10" y1="28" x2="16" y2="26" stroke="#9B8FD4" stroke-width="2" stroke-linecap="round" opacity="0.6"/>
+            <line x1="64" y1="16" x2="68" y2="20" stroke="#9B8FD4" stroke-width="2" stroke-linecap="round" opacity="0.6"/>
+            <line x1="64" y1="26" x2="70" y2="28" stroke="#9B8FD4" stroke-width="2" stroke-linecap="round" opacity="0.6"/>
           </svg>
         </span>
         <span class="mood-annotation">let's go!!</span>

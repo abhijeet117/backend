@@ -79,4 +79,44 @@ nav {
   box-shadow: 0 6px 30px rgba(255,107,71,0.45);
 }
 
+@media (max-width: 1199px) {
+  nav {
+    padding: 18px 32px;
+  }
+
+  .nav-links {
+    gap: 24px;
+  }
+
+  .btn-nav-login,
+  .btn-nav-start {
+    padding: 9px 18px;
+    font-size: 0.82rem;
+  }
+}
+
+@media (max-width: 767px) {
+  nav {
+    padding: 14px 16px;
+  }
+
+  .nav-logo {
+    font-size: 1rem;
+    gap: 8px;
+  }
+
+  .nav-links {
+    display: none;
+  }
+
+  .nav-cta {
+    gap: 8px;
+  }
+
+  .btn-nav-login,
+  .btn-nav-start {
+    padding: 8px 14px;
+    font-size: 0.78rem;
+  }
+}
 

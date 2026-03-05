@@ -11,7 +11,7 @@ import {
 } from "../features/moodify/runtime/useMoodifyEffects.js";
 
 function DashboardPage() {
-  const { isMenuOpen, displayName, avatarLabel, toggleMenu, goProfile, logout } = useDashboardUserMenu();
+  const { isMenuOpen, displayName, avatarLabel, toggleMenu, goDashboard, goProfile, logout } = useDashboardUserMenu();
   const {
     videoRef,
     handleCapture,
@@ -31,19 +31,20 @@ function DashboardPage() {
   return (
     <>
       <MoodifyOverlays />
-      <div id="page-dashboard">
+      <div id="page-dashboard" className="page-dashboard-live">
         <DashboardTopBar
           displayName={displayName}
           avatarLabel={avatarLabel}
           isMenuOpen={isMenuOpen}
           onToggleMenu={toggleMenu}
+          onDashboard={goDashboard}
           onProfile={goProfile}
           onLogout={logout}
         />
 
         <div className="dash-body">
           <div className="dash-main">
-            <div>
+            <div className="dash-main-section dash-main-section-camera">
               <div className="dash-section-label">Live Face Detection</div>
               <WebcamCard
                 videoRef={videoRef}
@@ -58,7 +59,7 @@ function DashboardPage() {
               />
             </div>
 
-            <div>
+            <div className="dash-main-section dash-main-section-mood">
               <div className="dash-section-label">Current Mood Profile</div>
               <MoodStatus mood={moodViewModel} />
             </div>

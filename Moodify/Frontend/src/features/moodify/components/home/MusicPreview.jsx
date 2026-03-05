@@ -1,6 +1,6 @@
 import { useCallback } from "react";
 import { musicPreviewHtml } from "../../assets/templates/fragments.js";
-import { getPreviewSongApi } from "../../services/previewSong.api.js";
+import { getPreviewSongApi, prefetchPreviewSongApi } from "../../services/previewSong.api.js";
 import HtmlFragment from "../common/HtmlFragment.jsx";
 import "./MusicPreview.scss";
 
@@ -37,10 +37,12 @@ function MusicPreview() {
     const elapsedLabel = progressTimes[0];
     const durationLabel = progressTimes[1];
     const audio = new Audio();
-    audio.preload = "metadata";
+    audio.preload = "auto";
 
     let isLoading = false;
     let hasFetchedSong = false;
+    let isDisposed = false;
+    let idlePrefetchId = null;
 
     const setPlayButtonState = (playing) => {
       playButton.innerHTML = playing ? PAUSE_SVG : PLAY_SVG;
@@ -70,11 +72,30 @@ function MusicPreview() {
 
       try {
         const preview = await getPreviewSongApi();
+        if (isDisposed) {
+          return;
+        }
         audio.src = preview.songUrl;
+        audio.load();
         hasFetchedSong = true;
       } finally {
         isLoading = false;
         playButton.disabled = false;
+      }
+    };
+
+    const warmupPreviewAudio = async () => {
+      try {
+        const preview = await getPreviewSongApi();
+        if (isDisposed || audio.src) {
+          return;
+        }
+
+        audio.src = preview.songUrl;
+        audio.load();
+        hasFetchedSong = true;
+      } catch {
+        // Ignore warmup failures and fallback to click-time fetch.
       }
     };
 
@@ -143,6 +164,15 @@ function MusicPreview() {
     };
 
     setPlayButtonState(false);
+    prefetchPreviewSongApi();
+
+    if (typeof window !== "undefined" && typeof window.requestIdleCallback === "function") {
+      idlePrefetchId = window.requestIdleCallback(() => {
+        void warmupPreviewAudio();
+      });
+    } else {
+      void warmupPreviewAudio();
+    }
 
     playButton.addEventListener("click", handlePlayPause);
     progressBar.addEventListener("click", handleProgressSeek);
@@ -152,6 +182,10 @@ function MusicPreview() {
     audio.addEventListener("pause", handlePause);
 
     return () => {
+      isDisposed = true;
+      if (typeof window !== "undefined" && typeof window.cancelIdleCallback === "function" && idlePrefetchId) {
+        window.cancelIdleCallback(idlePrefetchId);
+      }
       playButton.removeEventListener("click", handlePlayPause);
       progressBar.removeEventListener("click", handleProgressSeek);
       audio.removeEventListener("loadedmetadata", handleLoadedMetadata);
