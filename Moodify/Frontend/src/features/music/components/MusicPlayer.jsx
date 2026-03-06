@@ -174,7 +174,7 @@ function MusicPlayer() {
   const [isPlayActionPending, setIsPlayActionPending] = useState(false);
 
   const currentSongBaseUrl = currentSong?.songUrl || "";
-  const effectiveSongUrl = resolvedSongUrl || (currentSong?.playbackPending ? "" : currentSongBaseUrl);
+  const effectiveSongUrl = resolvedSongUrl || currentSongBaseUrl;
   const currentYoutubeVideoId = useMemo(() => getYouTubeVideoId(effectiveSongUrl), [effectiveSongUrl]);
   const isYouTubeSong = Boolean(currentYoutubeVideoId);
   const displayedTime = isSeeking ? seekTimeSeconds : currentTimeSeconds;
