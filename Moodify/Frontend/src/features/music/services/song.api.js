@@ -1,6 +1,7 @@
 import axios from "axios";
+import { withApiBase } from "../../../config/apiBaseUrl";
 
-const SONG_BASE_URL = (import.meta.env.VITE_SONG_API_BASE_URL || "/api/songs").replace(/\/$/, "");
+const SONG_BASE_URL = withApiBase("/api/songs");
 const IS_DEBUG = Boolean(import.meta.env.DEV);
 
 class SongApiError extends Error {

@@ -1,4 +1,6 @@
-const AUTH_BASE_URL = (import.meta.env.VITE_AUTH_API_BASE_URL || "/api/auth").replace(/\/$/, "");
+import { withApiBase } from "../../../config/apiBaseUrl";
+
+const AUTH_BASE_URL = withApiBase("/api/auth");
 
 class ApiError extends Error {
   constructor(message, status, details = null) {

@@ -1,7 +1,8 @@
 import axios from "axios";
+import { withApiBase } from "../../../config/apiBaseUrl";
 
 const previewSongClient = axios.create({
-  baseURL: "/api/preview-song",
+  baseURL: withApiBase("/api/preview-song"),
   withCredentials: true,
 });
 

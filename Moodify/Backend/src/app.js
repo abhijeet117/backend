@@ -2,6 +2,7 @@ const express = require("express")
 const cookieParser = require("cookie-parser")
 const helmet = require("helmet")
 const cors = require("cors")
+const path = require("path")
 const mongoSanitize = require("./middleware/mongoSanitize.middleware")
 const { xss } = require("express-xss-sanitizer")
 const app = express()
@@ -13,19 +14,7 @@ const allowedOrigins = rawCorsOrigins
     .map((origin) => origin.trim())
     .filter(Boolean)
 
-const devOrigins = [
-    "http://localhost:5173",
-    "http://127.0.0.1:5173",
-    "http://localhost:4173",
-    "http://127.0.0.1:4173"
-]
-
 const allowedOriginSet = new Set(allowedOrigins)
-if (process.env.NODE_ENV !== "production") {
-    devOrigins.forEach((origin) => {
-        allowedOriginSet.add(origin)
-    })
-}
 
 const corsOptions = {
     origin: (origin, callback) => {
@@ -62,6 +51,15 @@ const previewSongRoutes = require("./routes/previewSong.route")
 app.use("/api/auth", authRoutes)
 app.use("/api/songs", songRoutes)
 app.use("/api/preview-song", previewSongRoutes)
+
+if (process.env.NODE_ENV === "production") {
+    const frontendDistPath = path.resolve(__dirname, "../../Frontend/dist")
+
+    app.use(express.static(frontendDistPath))
+    app.get(/^\/(?!api).*/, (req, res) => {
+        res.sendFile(path.join(frontendDistPath, "index.html"))
+    })
+}
 
 app.use((error, req, res, next) => {
     if (res.headersSent) {
