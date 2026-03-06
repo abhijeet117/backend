@@ -45,13 +45,22 @@ app.use(
             useDefaults: true,
             directives: {
                 defaultSrc: ["'self'"],
-                scriptSrc: ["'self'", "https://cdn.jsdelivr.net", "'wasm-unsafe-eval'"],
+                scriptSrc: [
+                    "'self'",
+                    "https://cdn.jsdelivr.net",
+                    "https://www.youtube.com",
+                    "https://s.ytimg.com",
+                    "'wasm-unsafe-eval'"
+                ],
                 connectSrc: [
                     "'self'",
                     "https://cdn.jsdelivr.net",
                     "https://storage.googleapis.com",
-                    "https://ik.imagekit.io"
+                    "https://ik.imagekit.io",
+                    "https://www.youtube.com",
+                    "https://s.ytimg.com"
                 ],
+                frameSrc: ["'self'", "https://www.youtube.com", "https://www.youtube-nocookie.com"],
                 mediaSrc: ["'self'", "https://ik.imagekit.io", "https:", "blob:", "data:"],
                 imgSrc: ["'self'", "data:", "https:"],
                 workerSrc: ["'self'", "blob:"]
