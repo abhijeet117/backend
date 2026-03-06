@@ -66,34 +66,40 @@ function useFaceMood() {
     setCameraError("");
     setIsCameraReady(false);
 
+    let stream = null;
+    let faceLandmarker = null;
+
     try {
-      const faceLandmarker = await createFaceLandmarker();
-      if (requestId !== initRequestRef.current) {
-        faceLandmarker.close();
-        return false;
+      if (!navigator?.mediaDevices?.getUserMedia) {
+        throw new Error("Camera API is not available in this browser.");
       }
 
-      const stream = await navigator.mediaDevices.getUserMedia({
+      // Ask for camera permission first so the browser prompt appears immediately on dashboard load.
+      stream = await navigator.mediaDevices.getUserMedia({
         video: { facingMode: "user" },
         audio: false,
       });
 
       if (requestId !== initRequestRef.current) {
         stream.getTracks().forEach((track) => track.stop());
-        faceLandmarker.close();
         return false;
       }
 
       const videoElement = videoRef.current;
       if (!videoElement) {
         stream.getTracks().forEach((track) => track.stop());
-        faceLandmarker.close();
         return false;
       }
 
       videoElement.srcObject = stream;
       await videoElement.play();
 
+      if (requestId !== initRequestRef.current) {
+        stream.getTracks().forEach((track) => track.stop());
+        return false;
+      }
+
+      faceLandmarker = await createFaceLandmarker();
       if (requestId !== initRequestRef.current) {
         stream.getTracks().forEach((track) => track.stop());
         faceLandmarker.close();
@@ -105,7 +111,20 @@ function useFaceMood() {
       setIsCameraReady(true);
       return true;
     } catch (error) {
-      setCameraError(error?.message || "Camera access is required for mood capture.");
+      if (stream) {
+        stream.getTracks().forEach((track) => track.stop());
+      }
+
+      if (faceLandmarker) {
+        faceLandmarker.close();
+      }
+
+      const message =
+        error?.name === "NotAllowedError"
+          ? "Camera permission denied. Please allow camera access."
+          : error?.message || "Camera access is required for mood capture.";
+
+      setCameraError(message);
       return false;
     }
   }, []);

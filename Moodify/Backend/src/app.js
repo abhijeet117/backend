@@ -39,7 +39,26 @@ const corsOptions = {
 }
 
 app.disable("x-powered-by")
-app.use(helmet())
+app.use(
+    helmet({
+        contentSecurityPolicy: {
+            useDefaults: true,
+            directives: {
+                defaultSrc: ["'self'"],
+                scriptSrc: ["'self'", "https://cdn.jsdelivr.net", "'wasm-unsafe-eval'"],
+                connectSrc: [
+                    "'self'",
+                    "https://cdn.jsdelivr.net",
+                    "https://storage.googleapis.com",
+                    "https://ik.imagekit.io"
+                ],
+                mediaSrc: ["'self'", "https://ik.imagekit.io", "https:", "blob:", "data:"],
+                imgSrc: ["'self'", "data:", "https:"],
+                workerSrc: ["'self'", "blob:"]
+            }
+        }
+    })
+)
 app.use(cors(corsOptions))
 
 app.use(express.json())
