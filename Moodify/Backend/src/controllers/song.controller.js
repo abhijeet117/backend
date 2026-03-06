@@ -15,6 +15,7 @@ const AUDIO_MIME_PREFIX = "audio/";
 const IMAGE_MIME_PREFIX = "image/";
 const DEFAULT_POSTER_URL = "https://placehold.co/600x600/png?text=Moodify";
 const SONG_CACHE_TTL_SECONDS = Number(process.env.SONG_CACHE_TTL_SECONDS || 3600);
+const FAST_DETECTION_LIMIT = Number(process.env.FAST_DETECTION_LIMIT || 3);
 const MIME_TO_EXTENSION = {
   "image/jpeg": ".jpg",
   "image/jpg": ".jpg",
@@ -69,7 +70,11 @@ function isRedisReady() {
 }
 
 function getMoodSongsCacheKey(mood) {
-  return `songs:mood:${mood}`;
+  return `moodSongs:${mood}`;
+}
+
+function getDetectionCountCacheKey(userId) {
+  return `detectionCount:${userId}`;
 }
 
 async function readMoodSongsFromCache(mood) {
@@ -106,6 +111,38 @@ async function writeMoodSongsToCache(mood, songs) {
   } catch {
     // Cache write failures should not affect API response.
   }
+}
+
+async function incrementDetectionCount(userId) {
+  if (!isRedisReady() || !userId) {
+    return null;
+  }
+
+  try {
+    const nextCount = await redis.incr(getDetectionCountCacheKey(userId));
+    return Number.isFinite(nextCount) ? nextCount : Number(nextCount) || null;
+  } catch {
+    return null;
+  }
+}
+
+async function fetchSongsByMoodFromDatabase(mood) {
+  const moodFilter = MOOD_QUERY_MAP[mood] || [mood];
+
+  return songModel
+    .find({ mood: { $in: moodFilter } })
+    .select("title artist mood songUrl posterUrl")
+    .sort({ createdAt: -1 })
+    .lean();
+}
+
+function selectRandomSong(songs) {
+  if (!Array.isArray(songs) || songs.length === 0) {
+    return null;
+  }
+
+  const randomIndex = Math.floor(Math.random() * songs.length);
+  return songs[randomIndex] || songs[0] || null;
 }
 
 async function invalidateMoodSongsCache() {
@@ -278,7 +315,8 @@ async function createSong(req, res) {
 async function getSongsByMood(req, res) {
   try {
     const mood = normalizeMood(req.params?.mood);
-    debugSongLog("GET /api/songs/mood/:mood requested", { mood });
+    const userId = typeof req.user?.id === "string" ? req.user.id : "";
+    debugSongLog("GET /api/songs/mood/:mood requested", { mood, userId });
 
     if (!ALLOWED_MOODS.has(mood)) {
       return res.status(400).json({
@@ -287,36 +325,48 @@ async function getSongsByMood(req, res) {
       });
     }
 
-    const cachedSongs = await readMoodSongsFromCache(mood);
-    if (cachedSongs) {
-      debugSongLog("Songs cache hit", {
-        mood,
-        totalSongs: cachedSongs.length,
-      });
+    const detectionCount = (await incrementDetectionCount(userId)) || 0;
+    const shouldUseRedisForFastStart =
+      Number.isInteger(detectionCount) && detectionCount > 0 && detectionCount <= FAST_DETECTION_LIMIT;
 
-      return res.status(200).json({
-        success: true,
-        songs: cachedSongs,
-        cached: true,
-      });
+    if (shouldUseRedisForFastStart) {
+      const cachedSongs = await readMoodSongsFromCache(mood);
+      if (cachedSongs) {
+        const selectedSong = selectRandomSong(cachedSongs);
+        debugSongLog("Songs cache hit for fast detection", {
+          mood,
+          detectionCount,
+          totalSongs: cachedSongs.length,
+          selectedSongTitle: selectedSong?.title || null,
+        });
+
+        return res.status(200).json({
+          success: true,
+          songs: cachedSongs,
+          selectedSong,
+          detectionCount,
+          cached: true,
+        });
+      }
     }
 
-    const moodFilter = MOOD_QUERY_MAP[mood] || [mood];
-    const songs = await songModel
-      .find({ mood: { $in: moodFilter } })
-      .select("title artist mood songUrl posterUrl")
-      .sort({ createdAt: -1 })
-      .lean();
+    const songs = await fetchSongsByMoodFromDatabase(mood);
+    const selectedSong = selectRandomSong(songs);
     void writeMoodSongsToCache(mood, songs);
-    debugSongLog("Songs fetched for mood", {
+    debugSongLog(shouldUseRedisForFastStart ? "Songs fetched after fast-start cache miss" : "Songs fetched for mood", {
       mood,
+      detectionCount,
       totalSongs: songs.length,
-      topSong: songs[0]?.title || null,
+      selectedSongTitle: selectedSong?.title || null,
+      fastStart: shouldUseRedisForFastStart,
     });
 
     return res.status(200).json({
       success: true,
       songs,
+      selectedSong,
+      detectionCount,
+      cached: false,
     });
   } catch (error) {
     debugSongLog("GET /api/songs/mood/:mood failed", { error: error.message });
