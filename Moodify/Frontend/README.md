@@ -1,16 +1,42 @@
-# React + Vite
+# Moodify
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Moodify is a mood-based music web application that detects your facial expression and plays music according to your mood.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- Face expression detection using MediaPipe
+- Mood based music recommendation
+- Music player with controls
+- User authentication (Login / Register)
+- Song storage using ImageKit
+- Responsive UI for desktop and mobile
 
-## React Compiler
+## Tech Stack
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+Frontend
+- React
+- Vite
+- SCSS
 
-## Expanding the ESLint configuration
+Backend
+- Node.js
+- Express
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+Database
+- MongoDB
+
+Other Tools
+- MediaPipe Face Landmarker
+- ImageKit
+- Redis
+
+## How It Works
+
+1. User opens the dashboard.
+2. Camera detects facial expression.
+3. Mood is identified (happy, sad, neutral, shock).
+4. A song matching the mood is played automatically.
+
+
+```bash
+git clone https://github.com/your-username/moodify.git
