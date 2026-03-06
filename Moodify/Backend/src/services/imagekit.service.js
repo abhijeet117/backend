@@ -1,6 +1,7 @@
 const path = require("path");
 const { toFile } = require("@imagekit/nodejs");
 const { imageKitClient, isImageKitConfigured } = require("../config/imagekit");
+const { optimizeAudioFile } = require("./audioOptimization.service");
 
 const SONG_UPLOAD_ROOT = "cohort-2/moodify/songs";
 const POSTER_UPLOAD_ROOT = "cohort-2/moodify/posters";
@@ -63,10 +64,12 @@ async function uploadSong(file, { title, artist, mood }) {
   assertImageKitConfig();
 
   const normalizedMood = normalizeMood(mood);
-  const fileName = buildUploadName(file, title, artist, "song");
+  const optimizedAudio = await optimizeAudioFile(file);
+  const uploadFile = optimizedAudio.file || file;
+  const fileName = buildUploadName(uploadFile, title, artist, "song");
 
   const upload = await imageKitClient.files.upload({
-    file: await toFile(file.buffer, fileName),
+    file: await toFile(uploadFile.buffer, fileName),
     fileName,
     folder: `/${SONG_UPLOAD_ROOT}/${normalizedMood}`,
     useUniqueFileName: false,
@@ -77,6 +80,11 @@ async function uploadSong(file, { title, artist, mood }) {
     songUrl: upload?.url || "",
     songFileId: upload?.fileId || "",
     songPath: upload?.filePath || "",
+    audioFormat: optimizedAudio.audioFormat || "",
+    audioBitrateKbps: optimizedAudio.audioBitrateKbps || null,
+    originalBytes: optimizedAudio.originalBytes || file?.buffer?.length || 0,
+    optimizedBytes: optimizedAudio.optimizedBytes || uploadFile?.buffer?.length || 0,
+    optimized: Boolean(optimizedAudio.optimized),
     raw: upload,
   };
 }

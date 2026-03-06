@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useMoodSongs } from "../hooks/useMoodSongs.js";
+import { getSongPlaybackApi } from "../services/song.api.js";
 import SeekBar from "./SeekBar.jsx";
 import "./MusicPlayer.scss";
 
@@ -105,6 +106,51 @@ function formatTime(value) {
   return `${minutes}:${seconds.toString().padStart(2, "0")}`;
 }
 
+function waitForAudioCanPlay(audioElement) {
+  return new Promise((resolve, reject) => {
+    if (!audioElement) {
+      reject(new Error("Audio element is not available."));
+      return;
+    }
+
+    const readyState = Number(audioElement.readyState) || 0;
+    if (readyState >= 3) {
+      resolve();
+      return;
+    }
+
+    let timeoutId = null;
+
+    const cleanup = () => {
+      audioElement.removeEventListener("canplay", handleReady);
+      audioElement.removeEventListener("canplaythrough", handleReady);
+      audioElement.removeEventListener("error", handleError);
+      if (timeoutId !== null) {
+        clearTimeout(timeoutId);
+      }
+    };
+
+    const handleReady = () => {
+      cleanup();
+      resolve();
+    };
+
+    const handleError = () => {
+      cleanup();
+      reject(new Error("Audio failed while buffering."));
+    };
+
+    timeoutId = window.setTimeout(() => {
+      cleanup();
+      reject(new Error("Audio loading timed out."));
+    }, 12000);
+
+    audioElement.addEventListener("canplay", handleReady, { once: true });
+    audioElement.addEventListener("canplaythrough", handleReady, { once: true });
+    audioElement.addEventListener("error", handleError, { once: true });
+  });
+}
+
 function MusicPlayer() {
   const { songs, currentSong, currentMood, currentSongIndex, loading, error, selectSongByIndex, selectRandomSong } =
     useMoodSongs();
@@ -114,6 +160,7 @@ function MusicPlayer() {
   const youtubePlayerRef = useRef(null);
   const youtubeProgressTimerRef = useRef(null);
   const isSeekingRef = useRef(false);
+  const playbackResolveRequestRef = useRef(0);
 
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTimeSeconds, setCurrentTimeSeconds] = useState(0);
@@ -121,12 +168,19 @@ function MusicPlayer() {
   const [isSeeking, setIsSeeking] = useState(false);
   const [seekTimeSeconds, setSeekTimeSeconds] = useState(0);
   const [autoplayError, setAutoplayError] = useState("");
+  const [resolvedSongUrl, setResolvedSongUrl] = useState("");
+  const [isSourceResolving, setIsSourceResolving] = useState(false);
+  const [isAudioLoading, setIsAudioLoading] = useState(false);
+  const [isPlayActionPending, setIsPlayActionPending] = useState(false);
 
-  const currentYoutubeVideoId = useMemo(() => getYouTubeVideoId(currentSong?.songUrl || ""), [currentSong?.songUrl]);
+  const currentSongBaseUrl = currentSong?.songUrl || "";
+  const effectiveSongUrl = resolvedSongUrl || (currentSong?.playbackPending ? "" : currentSongBaseUrl);
+  const currentYoutubeVideoId = useMemo(() => getYouTubeVideoId(effectiveSongUrl), [effectiveSongUrl]);
   const isYouTubeSong = Boolean(currentYoutubeVideoId);
   const displayedTime = isSeeking ? seekTimeSeconds : currentTimeSeconds;
   const elapsedTime = useMemo(() => formatTime(displayedTime), [displayedTime]);
   const durationTime = useMemo(() => formatTime(durationSeconds), [durationSeconds]);
+  const isPlayerBusy = isSourceResolving || isAudioLoading || isPlayActionPending;
   const eqBars = useMemo(
     () =>
       EQ_BAR_HEIGHTS.map((height, index) => ({
@@ -146,6 +200,52 @@ function MusicPlayer() {
       // Best-effort warmup for faster first YouTube playback.
     });
   }, []);
+
+  useEffect(() => {
+    const requestId = playbackResolveRequestRef.current + 1;
+    playbackResolveRequestRef.current = requestId;
+
+    setResolvedSongUrl("");
+    setAutoplayError("");
+    setIsSourceResolving(false);
+    setIsAudioLoading(false);
+    setIsPlayActionPending(false);
+
+    const songId = typeof currentSong?._id === "string" ? currentSong._id : currentSong?._id?.toString?.() || "";
+    if (!songId || !currentSong?.playbackPending) {
+      if (currentSongBaseUrl && !getYouTubeVideoId(currentSongBaseUrl)) {
+        setResolvedSongUrl(currentSongBaseUrl);
+      }
+      return;
+    }
+
+    let cancelled = false;
+    setIsSourceResolving(true);
+
+    void getSongPlaybackApi(songId)
+      .then((playback) => {
+        if (cancelled || requestId !== playbackResolveRequestRef.current) {
+          return;
+        }
+
+        const nextUrl = typeof playback?.songUrl === "string" ? playback.songUrl.trim() : "";
+        if (nextUrl && !playback?.pending) {
+          setResolvedSongUrl(nextUrl);
+        }
+      })
+      .catch(() => {
+        // Keep the fallback silent and let the user-triggered play path retry with wait=true.
+      })
+      .finally(() => {
+        if (!cancelled && requestId === playbackResolveRequestRef.current) {
+          setIsSourceResolving(false);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [currentSong?._id, currentSong?.playbackPending, currentSongBaseUrl]);
 
   const stopYouTubeProgressTimer = useCallback(() => {
     if (youtubeProgressTimerRef.current) {
@@ -181,6 +281,14 @@ function MusicPlayer() {
       return "Matching tracks with your captured mood...";
     }
 
+    if (isSourceResolving) {
+      return "Preparing direct audio for fast playback...";
+    }
+
+    if (isAudioLoading || isPlayActionPending) {
+      return "Loading audio...";
+    }
+
     if (error) {
       return error;
     }
@@ -190,7 +298,7 @@ function MusicPlayer() {
     }
 
     return currentSong.artist || "Unknown artist";
-  }, [loading, error, currentSong]);
+  }, [loading, isSourceResolving, isAudioLoading, isPlayActionPending, error, currentSong]);
 
   const handlePrevious = useCallback(() => {
     if (songs.length === 0) {
@@ -431,32 +539,66 @@ function MusicPlayer() {
   ]);
 
   useEffect(() => {
-    if (isYouTubeSong || !currentSong?.songUrl || !audioRef.current) {
+    if (isYouTubeSong || !effectiveSongUrl || !audioRef.current) {
       return;
     }
 
+    const audio = audioRef.current;
+    let cancelled = false;
+
+    if (audio.src !== effectiveSongUrl) {
+      audio.src = effectiveSongUrl;
+      audio.load();
+    }
+
+    setIsAudioLoading(true);
+
     if (IS_DEBUG) {
-      console.debug("[MusicPlayer UI] Attempting autoplay", {
-        songUrl: currentSong?.songUrl,
+      console.debug("[MusicPlayer UI] Preparing direct audio playback", {
+        songUrl: effectiveSongUrl,
       });
     }
 
-    const playPromise = audioRef.current.play();
-    if (playPromise && typeof playPromise.catch === "function") {
-      playPromise.catch((error) => {
-        setAutoplayError("Autoplay blocked by browser. Tap play to start.");
-        setIsPlaying(false);
-        if (IS_DEBUG) {
-          console.warn("[MusicPlayer UI] Autoplay failed", {
-            message: error?.message || "Unknown autoplay error",
-          });
+    void waitForAudioCanPlay(audio)
+      .then(async () => {
+        if (cancelled) {
+          return;
+        }
+
+        try {
+          await audio.play();
+          setAutoplayError("");
+        } catch (error) {
+          if (cancelled) {
+            return;
+          }
+
+          setAutoplayError("Autoplay blocked by browser. Tap play to start.");
+          setIsPlaying(false);
+          if (IS_DEBUG) {
+            console.warn("[MusicPlayer UI] Autoplay failed", {
+              message: error?.message || "Unknown autoplay error",
+            });
+          }
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setIsAudioLoading(false);
         }
       });
-    }
-  }, [currentSong?.songUrl, isYouTubeSong]);
+
+    return () => {
+      cancelled = true;
+    };
+  }, [effectiveSongUrl, isYouTubeSong]);
 
   const handleTogglePlay = useCallback(async () => {
     if (!canControl) {
+      return;
+    }
+
+    if (isPlayActionPending || isSourceResolving) {
       return;
     }
 
@@ -487,19 +629,64 @@ function MusicPlayer() {
       return;
     }
 
+    if (effectiveSongUrl && !audioRef.current.paused) {
+      audioRef.current.pause();
+      return;
+    }
+
+    const songId = typeof currentSong?._id === "string" ? currentSong._id : currentSong?._id?.toString?.() || "";
+    let nextSongUrl = effectiveSongUrl;
+
+    if (!nextSongUrl && songId) {
+      setIsPlayActionPending(true);
+      setIsSourceResolving(true);
+
+      try {
+        const playback = await getSongPlaybackApi(songId, { forceRefresh: true, waitForReady: true });
+        nextSongUrl = typeof playback?.songUrl === "string" ? playback.songUrl.trim() : "";
+        if (nextSongUrl) {
+          setResolvedSongUrl(nextSongUrl);
+        }
+      } catch (error) {
+        setAutoplayError(error?.message || "Audio is still preparing. Please try again.");
+        setIsPlaying(false);
+        setIsPlayActionPending(false);
+        return;
+      } finally {
+        setIsSourceResolving(false);
+      }
+    }
+
+    if (!nextSongUrl) {
+      setAutoplayError("Audio is still preparing. Please try again.");
+      setIsPlaying(false);
+      setIsPlayActionPending(false);
+      return;
+    }
+
     if (audioRef.current.paused) {
       try {
+        if (audioRef.current.src !== nextSongUrl) {
+          audioRef.current.src = nextSongUrl;
+          audioRef.current.load();
+        }
+
+        setIsAudioLoading(true);
+        setIsPlayActionPending(true);
+        await waitForAudioCanPlay(audioRef.current);
         await audioRef.current.play();
         setAutoplayError("");
       } catch {
         setIsPlaying(false);
-        setAutoplayError("Unable to play this song. Check the source URL.");
+        setAutoplayError("Unable to play this song right now.");
+      } finally {
+        setIsPlayActionPending(false);
       }
       return;
     }
 
     audioRef.current.pause();
-  }, [canControl, isYouTubeSong]);
+  }, [canControl, currentSong?._id, effectiveSongUrl, isPlayActionPending, isSourceResolving, isYouTubeSong]);
 
   const handleTimeUpdate = useCallback(() => {
     if (!audioRef.current) {
@@ -522,6 +709,7 @@ function MusicPlayer() {
 
     const duration = Number(audioRef.current.duration) || 0;
     setDurationSeconds(duration);
+    setIsAudioLoading(false);
   }, []);
 
   const handleLoadStart = useCallback(() => {
@@ -530,6 +718,7 @@ function MusicPlayer() {
     setSeekTimeSeconds(0);
     setIsSeeking(false);
     setIsPlaying(false);
+    setIsAudioLoading(true);
     setAutoplayError("");
   }, []);
 
@@ -560,7 +749,7 @@ function MusicPlayer() {
       </div>
 
       <div className="sp-track-name">
-        {loading ? "Finding songs..." : currentSong?.title || "Capture to start playback"}
+        {loading ? "Finding songs..." : isSourceResolving ? "Preparing song..." : currentSong?.title || "Capture to start playback"}
       </div>
       <div className="sp-track-artist">{statusSubtitle}</div>
       {autoplayError ? <div className="sp-track-artist">{autoplayError}</div> : null}
@@ -571,7 +760,7 @@ function MusicPlayer() {
       ) : null}
 
       <div className="sp-controls">
-        <button type="button" className="sp-ctrl" title="Previous" onClick={handlePrevious} disabled={!canControl}>
+        <button type="button" className="sp-ctrl" title="Previous" onClick={handlePrevious} disabled={!canControl || isPlayerBusy}>
           <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
             <path d="M6 6h2v12H6zm3.5 6 8.5 6V6z" />
           </svg>
@@ -581,7 +770,7 @@ function MusicPlayer() {
           className="sp-ctrl"
           title="Shuffle"
           onClick={handleRandom}
-          disabled={!canControl || songs.length < 2}
+          disabled={!canControl || songs.length < 2 || isPlayerBusy}
         >
           <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
             <path d="M10.59 9.17 5.41 4 4 5.41l5.17 5.17 1.42-1.41zM14.5 4l2.04 2.04L4 18.59 5.41 20 17.96 7.46 20 9.5V4h-5.5zm.33 9.41-1.41 1.41 3.13 3.13L14.5 20H20v-5.5l-2.04 2.04-3.13-3.13z" />
@@ -592,7 +781,7 @@ function MusicPlayer() {
           className="sp-play"
           title="Play/Pause"
           onClick={handleTogglePlay}
-          disabled={!canControl}
+          disabled={!canControl || isPlayActionPending}
         >
           {isPlaying ? (
             <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
@@ -609,7 +798,7 @@ function MusicPlayer() {
             <path d="M7 7h10v3l4-4-4-4v3H5v6h2V7zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2v4z" />
           </svg>
         </button>
-        <button type="button" className="sp-ctrl" title="Next" onClick={handleNext} disabled={!canControl}>
+        <button type="button" className="sp-ctrl" title="Next" onClick={handleNext} disabled={!canControl || isPlayerBusy}>
           <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
             <path d="M16 6h2v12h-2zm-11 0v12l8.5-6L5 6z" />
           </svg>
@@ -660,23 +849,30 @@ function MusicPlayer() {
       {!isYouTubeSong ? (
         <audio
           ref={audioRef}
-          src={currentSong?.songUrl || ""}
+          src={effectiveSongUrl}
           preload="auto"
-          autoPlay
           onLoadStart={handleLoadStart}
           onPlay={() => {
             setIsPlaying(true);
+            setIsAudioLoading(false);
+            setIsPlayActionPending(false);
             setAutoplayError("");
           }}
           onPause={() => setIsPlaying(false)}
           onLoadedMetadata={handleLoadedMetadata}
+          onLoadedData={() => setIsAudioLoading(false)}
+          onCanPlay={() => setIsAudioLoading(false)}
+          onWaiting={() => setIsAudioLoading(true)}
+          onStalled={() => setIsAudioLoading(true)}
           onTimeUpdate={handleTimeUpdate}
           onEnded={handleRandom}
           onError={() => {
+            setIsAudioLoading(false);
+            setIsPlayActionPending(false);
             setAutoplayError("Audio failed to load. Please verify songUrl.");
             if (IS_DEBUG) {
               console.error("[MusicPlayer UI] Audio element error", {
-                songUrl: currentSong?.songUrl || null,
+                songUrl: effectiveSongUrl || null,
               });
             }
           }}

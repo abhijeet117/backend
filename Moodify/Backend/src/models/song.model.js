@@ -31,6 +31,24 @@ const songSchema = new mongoose.Schema(
         message: "songUrl must be a valid URL.",
       },
     },
+    sourceUrl: {
+      type: String,
+      trim: true,
+      default: "",
+      validate: {
+        validator: (value) => !value || URL_PATTERN.test(value),
+        message: "sourceUrl must be a valid URL.",
+      },
+    },
+    playbackUrl: {
+      type: String,
+      trim: true,
+      default: "",
+      validate: {
+        validator: (value) => !value || URL_PATTERN.test(value),
+        message: "playbackUrl must be a valid URL.",
+      },
+    },
     posterUrl: {
       type: String,
       required: [true, "Poster URL is required."],
@@ -59,6 +77,25 @@ const songSchema = new mongoose.Schema(
       type: String,
       trim: true,
       default: "",
+    },
+    audioFormat: {
+      type: String,
+      trim: true,
+      default: "",
+    },
+    audioBitrateKbps: {
+      type: Number,
+      default: null,
+      min: 1,
+    },
+    audioBytes: {
+      type: Number,
+      default: null,
+      min: 1,
+    },
+    playbackReadyAt: {
+      type: Date,
+      default: null,
     },
   },
   {

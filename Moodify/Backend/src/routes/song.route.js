@@ -3,7 +3,7 @@ const multer = require("multer");
 
 const router = express.Router();
 const authUser = require("../middleware/auth.middleware");
-const { createSong, getSongsByMood } = require("../controllers/song.controller");
+const { createSong, getSongsByMood, getSongPlayback } = require("../controllers/song.controller");
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -40,5 +40,6 @@ function handleSongUpload(req, res, next) {
 
 router.post("/", handleSongUpload, createSong);
 router.get("/mood/:mood", authUser, getSongsByMood);
+router.get("/playback/:songId", authUser, getSongPlayback);
 
 module.exports = router;

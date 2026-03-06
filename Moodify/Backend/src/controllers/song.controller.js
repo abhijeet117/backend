@@ -1,5 +1,6 @@
 const songModel = require("../models/song.model");
 const { uploadSong, uploadPoster, safeDeleteFromImageKit } = require("../services/imagekit.service");
+const { getSongPlaybackAsset, isYouTubeUrl, warmSongPlaybackAsset } = require("../services/songPlayback.service");
 const NodeID3 = require("node-id3");
 const path = require("path");
 const redis = require("../config/cache");
@@ -16,6 +17,7 @@ const IMAGE_MIME_PREFIX = "image/";
 const DEFAULT_POSTER_URL = "https://placehold.co/600x600/png?text=Moodify";
 const SONG_CACHE_TTL_SECONDS = Number(process.env.SONG_CACHE_TTL_SECONDS || 3600);
 const FAST_DETECTION_LIMIT = Number(process.env.FAST_DETECTION_LIMIT || 3);
+const PLAYBACK_WARMUP_LIMIT = Number(process.env.PLAYBACK_WARMUP_LIMIT || 3);
 const MIME_TO_EXTENSION = {
   "image/jpeg": ".jpg",
   "image/jpg": ".jpg",
@@ -131,7 +133,7 @@ async function fetchSongsByMoodFromDatabase(mood) {
 
   return songModel
     .find({ mood: { $in: moodFilter } })
-    .select("title artist mood songUrl posterUrl")
+    .select("title artist mood songUrl sourceUrl playbackUrl playbackReadyAt posterUrl")
     .sort({ createdAt: -1 })
     .lean();
 }
@@ -141,8 +143,48 @@ function selectRandomSong(songs) {
     return null;
   }
 
-  const randomIndex = Math.floor(Math.random() * songs.length);
-  return songs[randomIndex] || songs[0] || null;
+  const directSongs = songs.filter((song) => !song?.playbackPending && !isYouTubeUrl(song?.songUrl));
+  const pool = directSongs.length > 0 ? directSongs : songs;
+  const randomIndex = Math.floor(Math.random() * pool.length);
+  return pool[randomIndex] || pool[0] || null;
+}
+
+function toClientSong(song) {
+  const songUrl = typeof song?.songUrl === "string" ? song.songUrl.trim() : "";
+  const playbackUrl = typeof song?.playbackUrl === "string" ? song.playbackUrl.trim() : "";
+  const sourceUrl = typeof song?.sourceUrl === "string" ? song.sourceUrl.trim() : songUrl;
+  const resolvedSongUrl = playbackUrl || songUrl;
+  const playbackPending = Boolean(isYouTubeUrl(songUrl) && !playbackUrl);
+
+  return {
+    ...song,
+    sourceUrl,
+    songUrl: resolvedSongUrl,
+    playbackPending,
+    playbackReady: !playbackPending,
+  };
+}
+
+function warmSongsForPlayback(songs) {
+  if (!Array.isArray(songs) || songs.length === 0) {
+    return;
+  }
+
+  songs
+    .filter((song) => song?.playbackPending && song?._id)
+    .slice(0, PLAYBACK_WARMUP_LIMIT)
+    .forEach((song) => {
+      warmSongPlaybackAsset({
+        _id: song._id,
+        title: song.title,
+        artist: song.artist,
+        mood: song.mood,
+        songUrl: song.sourceUrl || song.songUrl,
+        sourceUrl: song.sourceUrl || song.songUrl,
+        playbackUrl: song.playbackUrl || "",
+        playbackReadyAt: song.playbackReadyAt || null,
+      });
+    });
 }
 
 async function invalidateMoodSongsCache() {
@@ -278,11 +320,17 @@ async function createSong(req, res) {
       artist,
       mood,
       songUrl: songUpload.songUrl,
+      sourceUrl: songUpload.songUrl,
+      playbackUrl: songUpload.songUrl,
       posterUrl: posterUpload?.posterUrl || DEFAULT_POSTER_URL,
       imageKitSongFileId: songUpload.songFileId,
       imageKitPosterFileId: posterUpload?.posterFileId || "",
       imageKitSongPath: songUpload.songPath,
       imageKitPosterPath: posterUpload?.posterPath || "",
+      audioFormat: songUpload.audioFormat || "",
+      audioBitrateKbps: songUpload.audioBitrateKbps || null,
+      audioBytes: songUpload.optimizedBytes || null,
+      playbackReadyAt: new Date(),
     });
     debugSongLog("Song document created", {
       id: createdSong?._id?.toString?.() || createdSong?._id,
@@ -332,17 +380,19 @@ async function getSongsByMood(req, res) {
     if (shouldUseRedisForFastStart) {
       const cachedSongs = await readMoodSongsFromCache(mood);
       if (cachedSongs) {
-        const selectedSong = selectRandomSong(cachedSongs);
+        const normalizedCachedSongs = cachedSongs.map(toClientSong);
+        const selectedSong = selectRandomSong(normalizedCachedSongs);
+        warmSongsForPlayback(normalizedCachedSongs);
         debugSongLog("Songs cache hit for fast detection", {
           mood,
           detectionCount,
-          totalSongs: cachedSongs.length,
+          totalSongs: normalizedCachedSongs.length,
           selectedSongTitle: selectedSong?.title || null,
         });
 
         return res.status(200).json({
           success: true,
-          songs: cachedSongs,
+          songs: normalizedCachedSongs,
           selectedSong,
           detectionCount,
           cached: true,
@@ -351,19 +401,21 @@ async function getSongsByMood(req, res) {
     }
 
     const songs = await fetchSongsByMoodFromDatabase(mood);
-    const selectedSong = selectRandomSong(songs);
-    void writeMoodSongsToCache(mood, songs);
+    const normalizedSongs = songs.map(toClientSong);
+    const selectedSong = selectRandomSong(normalizedSongs);
+    void writeMoodSongsToCache(mood, normalizedSongs);
+    warmSongsForPlayback(selectedSong ? [selectedSong, ...normalizedSongs] : normalizedSongs);
     debugSongLog(shouldUseRedisForFastStart ? "Songs fetched after fast-start cache miss" : "Songs fetched for mood", {
       mood,
       detectionCount,
-      totalSongs: songs.length,
+      totalSongs: normalizedSongs.length,
       selectedSongTitle: selectedSong?.title || null,
       fastStart: shouldUseRedisForFastStart,
     });
 
     return res.status(200).json({
       success: true,
-      songs,
+      songs: normalizedSongs,
       selectedSong,
       detectionCount,
       cached: false,
@@ -379,7 +431,42 @@ async function getSongsByMood(req, res) {
   }
 }
 
+async function getSongPlayback(req, res) {
+  try {
+    const songId = typeof req.params?.songId === "string" ? req.params.songId.trim() : "";
+    const waitForPreparation = req.query?.wait === "1" || req.query?.wait === "true";
+
+    if (!songId) {
+      return res.status(400).json({
+        success: false,
+        message: "Song id is required.",
+      });
+    }
+
+    const playback = await getSongPlaybackAsset(songId, { waitForPreparation });
+    return res.status(200).json({
+      success: true,
+      songId,
+      songUrl: playback.songUrl,
+      sourceUrl: playback.sourceUrl || "",
+      pending: Boolean(playback.pending),
+      direct: Boolean(playback.direct),
+      cached: Boolean(playback.cached),
+      uploadedAt: playback.uploadedAt || null,
+    });
+  } catch (error) {
+    const statusCode = error?.statusCode || 500;
+
+    return res.status(statusCode).json({
+      success: false,
+      message: statusCode === 404 ? "Song not found." : "Failed to resolve song playback.",
+      error: error.message,
+    });
+  }
+}
+
 module.exports = {
   createSong,
   getSongsByMood,
+  getSongPlayback,
 };

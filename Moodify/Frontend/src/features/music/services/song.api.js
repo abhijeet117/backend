@@ -21,6 +21,9 @@ const songApiClient = axios.create({
   },
 });
 
+const playbackUrlCache = new Map();
+const playbackRequestCache = new Map();
+
 async function getSongsByMoodApi(mood) {
   try {
     if (IS_DEBUG) {
@@ -43,6 +46,7 @@ async function getSongsByMoodApi(mood) {
     return {
       success: Boolean(payload?.success),
       songs: normalizedSongs,
+      selectedSong: payload?.selectedSong || null,
     };
   } catch (error) {
     const status = error?.response?.status || 0;
@@ -62,4 +66,59 @@ async function getSongsByMoodApi(mood) {
   }
 }
 
-export { SongApiError, getSongsByMoodApi };
+async function getSongPlaybackApi(songId, { forceRefresh = false, waitForReady = false } = {}) {
+  const normalizedSongId = typeof songId === "string" ? songId.trim() : "";
+  if (!normalizedSongId) {
+    throw new SongApiError("Song id is required.", 400);
+  }
+
+  const cacheKey = `${normalizedSongId}:${waitForReady ? "wait" : "now"}`;
+  if (!forceRefresh && waitForReady === false && playbackUrlCache.has(normalizedSongId)) {
+    return playbackUrlCache.get(normalizedSongId);
+  }
+
+  if (!forceRefresh && playbackRequestCache.has(cacheKey)) {
+    return playbackRequestCache.get(cacheKey);
+  }
+
+  const requestPromise = songApiClient
+    .get(`/playback/${encodeURIComponent(normalizedSongId)}`, {
+      params: waitForReady ? { wait: 1 } : undefined,
+    })
+    .then((response) => {
+      const payload = response?.data || {};
+      if (!payload?.success || typeof payload?.songUrl !== "string" || !payload.songUrl.trim()) {
+        throw new SongApiError(payload?.message || "Playback URL is missing.", response?.status || 500, payload);
+      }
+
+      const normalizedPayload = {
+        songId: normalizedSongId,
+        songUrl: payload.songUrl.trim(),
+        sourceUrl: typeof payload?.sourceUrl === "string" ? payload.sourceUrl.trim() : "",
+        pending: Boolean(payload?.pending),
+        direct: Boolean(payload?.direct),
+        cached: Boolean(payload?.cached),
+        uploadedAt: payload?.uploadedAt || null,
+      };
+
+      if (!normalizedPayload.pending) {
+        playbackUrlCache.set(normalizedSongId, normalizedPayload);
+      }
+
+      return normalizedPayload;
+    })
+    .catch((error) => {
+      const status = error?.response?.status || error?.status || 0;
+      const payload = error?.response?.data || error?.details || null;
+      const message = payload?.message || error?.message || "Playback request failed.";
+      throw new SongApiError(message, status, payload);
+    })
+    .finally(() => {
+      playbackRequestCache.delete(cacheKey);
+    });
+
+  playbackRequestCache.set(cacheKey, requestPromise);
+  return requestPromise;
+}
+
+export { SongApiError, getSongPlaybackApi, getSongsByMoodApi };

@@ -58,6 +58,20 @@ function findSongIndex(songList = [], targetSong = null) {
   });
 }
 
+function resolveSelectedSong(songList = [], selectedSong = null, fallbackSong = null) {
+  const selectedSongIndex = findSongIndex(songList, selectedSong);
+  if (selectedSongIndex >= 0) {
+    return songList[selectedSongIndex];
+  }
+
+  const fallbackIndex = findSongIndex(songList, fallbackSong);
+  if (fallbackIndex >= 0) {
+    return songList[fallbackIndex];
+  }
+
+  return null;
+}
+
 function normalizeMood(mood) {
   if (typeof mood !== "string") {
     return "";
@@ -127,8 +141,10 @@ function useMoodSongs() {
           (song) => typeof song?.songUrl === "string" && song.songUrl.trim().length > 0
         );
         const previousSongIndex = findSongIndex(nextSongs, currentSong);
-        const randomSongIndex = getRandomIndex(nextSongs.length, previousSongIndex);
-        const selectedSong = randomSongIndex >= 0 ? nextSongs[randomSongIndex] : null;
+        const apiSelectedSong = resolveSelectedSong(nextSongs, response?.selectedSong, currentSong);
+        const randomSongIndex =
+          apiSelectedSong || nextSongs.length === 0 ? -1 : getRandomIndex(nextSongs.length, previousSongIndex);
+        const selectedSong = apiSelectedSong || (randomSongIndex >= 0 ? nextSongs[randomSongIndex] : null);
 
         setSongs(nextSongs);
         setCurrentSong(selectedSong);
