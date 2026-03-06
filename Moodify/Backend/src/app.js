@@ -8,13 +8,18 @@ const { xss } = require("express-xss-sanitizer")
 const app = express()
 require('dotenv').config()
 
+const baseAllowedOrigins = [
+    "http://localhost:5173",
+    "https://moodify-by-abhijeet.onrender.com"
+]
+
 const rawCorsOrigins = process.env.CORS_ORIGIN || ""
-const allowedOrigins = rawCorsOrigins
+const envAllowedOrigins = rawCorsOrigins
     .split(",")
     .map((origin) => origin.trim())
     .filter(Boolean)
 
-const allowedOriginSet = new Set(allowedOrigins)
+const allowedOriginSet = new Set([...baseAllowedOrigins, ...envAllowedOrigins])
 
 const corsOptions = {
     origin: (origin, callback) => {
@@ -22,7 +27,7 @@ const corsOptions = {
             return callback(null, true)
         }
 
-        if (allowedOriginSet.size === 0 || allowedOriginSet.has(origin)) {
+        if (allowedOriginSet.has(origin)) {
             return callback(null, true)
         }
 
