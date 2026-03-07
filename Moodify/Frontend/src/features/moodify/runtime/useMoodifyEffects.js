@@ -1,7 +1,32 @@
-﻿import { useEffect } from "react";
+import { useEffect } from "react";
 
 function lerp(a, b, t) {
   return a + (b - a) * t;
+}
+
+function getCurrentScrollY() {
+  return (
+    window.scrollY ||
+    window.pageYOffset ||
+    document.documentElement.scrollTop ||
+    document.body.scrollTop ||
+    0
+  );
+}
+
+function mediaMatches(query) {
+  return typeof window !== "undefined" &&
+    typeof window.matchMedia === "function"
+    ? window.matchMedia(query).matches
+    : false;
+}
+
+function isTouchOnlyDevice() {
+  const hasCoarsePointer = mediaMatches("(pointer: coarse)") || mediaMatches("(any-pointer: coarse)");
+  const hasFinePointer = mediaMatches("(pointer: fine)") || mediaMatches("(any-pointer: fine)");
+  const hasHover = mediaMatches("(hover: hover)") || mediaMatches("(any-hover: hover)");
+
+  return hasCoarsePointer && !hasFinePointer && !hasHover;
 }
 
 let moodCycleInterval = null;
@@ -223,15 +248,13 @@ export function useMoodifyHomeEffects() {
       return undefined;
     }
 
-    let currentScroll =
-      window.scrollY ||
-      window.pageYOffset ||
-      document.documentElement.scrollTop ||
-      document.body.scrollTop ||
-      0;
+    const useNativeTouchScroll = isTouchOnlyDevice();
+
+    let currentScroll = getCurrentScrollY();
     let targetScroll = currentScroll;
     let isScrolling = false;
     let touchStartY = 0;
+    let scrollTicking = false;
     let rafId = null;
     let smoothScrollToRafId = null;
 
@@ -314,13 +337,18 @@ export function useMoodifyHomeEffects() {
       }
     };
 
+    const applyScrollEffects = (scrollY) => {
+      updateScrollBar(scrollY);
+      if (!useNativeTouchScroll) {
+        parallaxOnScroll(scrollY);
+      }
+      checkReveals();
+    };
+
     const smoothScrollLoop = () => {
       currentScroll = lerp(currentScroll, targetScroll, 0.085);
       currentScroll = setPageScroll(currentScroll);
-
-      updateScrollBar(currentScroll);
-      parallaxOnScroll(currentScroll);
-      checkReveals();
+      applyScrollEffects(currentScroll);
 
       if (Math.abs(targetScroll - currentScroll) > 0.5) {
         rafId = requestAnimationFrame(smoothScrollLoop);
@@ -338,14 +366,17 @@ export function useMoodifyHomeEffects() {
         smoothScrollToRafId = null;
       }
 
-      currentScroll =
-        window.scrollY ||
-        window.pageYOffset ||
-        document.documentElement.scrollTop ||
-        document.body.scrollTop ||
-        0;
-      targetScroll = currentScroll;
       const destination = Math.max(0, Math.min(y, getMaxScroll()));
+      if (useNativeTouchScroll) {
+        window.scrollTo({
+          top: destination,
+          behavior: "smooth",
+        });
+        return;
+      }
+
+      currentScroll = getCurrentScrollY();
+      targetScroll = currentScroll;
       const start = currentScroll;
       const dist = destination - start;
       const startTime = performance.now();
@@ -358,8 +389,7 @@ export function useMoodifyHomeEffects() {
         targetScroll = start + dist * ease(progress);
         currentScroll = targetScroll;
         currentScroll = setPageScroll(currentScroll);
-        parallaxOnScroll(currentScroll);
-        checkReveals();
+        applyScrollEffects(currentScroll);
         if (progress < 1) {
           smoothScrollToRafId = requestAnimationFrame(step);
         } else {
@@ -402,6 +432,26 @@ export function useMoodifyHomeEffects() {
         isScrolling = true;
         rafId = requestAnimationFrame(smoothScrollLoop);
       }
+    };
+
+    const handleNativeScroll = () => {
+      if (scrollTicking) {
+        return;
+      }
+
+      scrollTicking = true;
+      rafId = requestAnimationFrame(() => {
+        currentScroll = getCurrentScrollY();
+        applyScrollEffects(currentScroll);
+        scrollTicking = false;
+        rafId = null;
+      });
+    };
+
+    const handleViewportChange = () => {
+      currentScroll = getCurrentScrollY();
+      targetScroll = currentScroll;
+      applyScrollEffects(currentScroll);
     };
 
     const anchorHandlers = [];
@@ -458,15 +508,24 @@ export function useMoodifyHomeEffects() {
       }
     };
 
-    window.addEventListener("wheel", handleWheel, { passive: false });
-    window.addEventListener("touchstart", handleTouchStart, { passive: true });
-    window.addEventListener("touchmove", handleTouchMove, { passive: true });
+    if (useNativeTouchScroll) {
+      window.addEventListener("scroll", handleNativeScroll, { passive: true });
+      window.addEventListener("resize", handleViewportChange, { passive: true });
+      window.addEventListener("orientationchange", handleViewportChange);
+    } else {
+      window.addEventListener("wheel", handleWheel, { passive: false });
+      window.addEventListener("touchstart", handleTouchStart, { passive: true });
+      window.addEventListener("touchmove", handleTouchMove, { passive: true });
+    }
 
     buildSoundwave();
     buildEqBg();
-    checkReveals();
+    applyScrollEffects(currentScroll);
 
     return () => {
+      window.removeEventListener("scroll", handleNativeScroll);
+      window.removeEventListener("resize", handleViewportChange);
+      window.removeEventListener("orientationchange", handleViewportChange);
       window.removeEventListener("wheel", handleWheel);
       window.removeEventListener("touchstart", handleTouchStart);
       window.removeEventListener("touchmove", handleTouchMove);
@@ -560,4 +619,3 @@ export function useMoodifyDashboardEffects() {
     };
   }, []);
 }
-
