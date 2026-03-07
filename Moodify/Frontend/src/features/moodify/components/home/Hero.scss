@@ -420,6 +420,7 @@
 
 @media (max-width: 767px) {
   .hero {
+    min-height: 100svh;
     padding: 104px 16px 48px;
     gap: 28px;
   }

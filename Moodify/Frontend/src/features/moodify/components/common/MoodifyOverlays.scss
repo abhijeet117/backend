@@ -36,8 +36,11 @@
   height: 2px;
   background: linear-gradient(90deg, var(--accent-coral), var(--accent-lavender));
   z-index: 200;
-  width: 0%;
-  transition: width 0.05s linear;
+  width: 100%;
+  transform: scaleX(0);
+  transform-origin: left center;
+  will-change: transform;
+  transition: transform 0.05s linear;
   box-shadow: 0 0 8px rgba(255,107,71,0.5);
 }
 

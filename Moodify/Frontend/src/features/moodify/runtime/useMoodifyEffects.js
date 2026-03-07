@@ -4,6 +4,23 @@ function lerp(a, b, t) {
   return a + (b - a) * t;
 }
 
+function getCurrentScrollY() {
+  return (
+    window.scrollY ||
+    window.pageYOffset ||
+    document.documentElement.scrollTop ||
+    document.body.scrollTop ||
+    0
+  );
+}
+
+function mediaMatches(query) {
+  return typeof window !== "undefined" &&
+    typeof window.matchMedia === "function"
+    ? window.matchMedia(query).matches
+    : false;
+}
+
 let moodCycleInterval = null;
 
 export function activateCam() {
@@ -68,6 +85,12 @@ function stopCamSimulation() {
 
 export function useMoodifyCursorEffects() {
   useEffect(() => {
+    const isCoarsePointer = mediaMatches("(hover: none), (pointer: coarse)");
+    const prefersReducedMotion = mediaMatches("(prefers-reduced-motion: reduce)");
+    if (isCoarsePointer || prefersReducedMotion) {
+      return undefined;
+    }
+
     const cursorRing = document.getElementById("cursorRing");
     const cursorGlow = document.getElementById("cursorGlow");
     const docStyle = document.documentElement.style;
@@ -223,15 +246,15 @@ export function useMoodifyHomeEffects() {
       return undefined;
     }
 
-    let currentScroll =
-      window.scrollY ||
-      window.pageYOffset ||
-      document.documentElement.scrollTop ||
-      document.body.scrollTop ||
-      0;
+    const isCoarsePointer = mediaMatches("(hover: none), (pointer: coarse)");
+    const prefersReducedMotion = mediaMatches("(prefers-reduced-motion: reduce)");
+    const useNativeScrolling = isCoarsePointer || prefersReducedMotion;
+    const enableParallax = !useNativeScrolling;
+
+    let currentScroll = getCurrentScrollY();
     let targetScroll = currentScroll;
     let isScrolling = false;
-    let touchStartY = 0;
+    let scrollTicking = false;
     let rafId = null;
     let smoothScrollToRafId = null;
 
@@ -242,26 +265,57 @@ export function useMoodifyHomeEffects() {
       return Math.max(0, contentHeight - window.innerHeight);
     };
 
+    const scrollBar = document.getElementById("scrollProgress");
+    const orbs = enableParallax ? Array.from(document.querySelectorAll(".orb")) : [];
+    const words = enableParallax
+      ? Array.from(document.querySelectorAll(".parallax-word")).map((word) => ({
+          word,
+          speed: parseFloat(word.dataset.speed || "0.3"),
+          rotate: word.style.transform.match(/rotate\(([^)]+)\)/)?.[0] || "",
+        }))
+      : [];
+    const webcamCard = enableParallax ? document.querySelector("#page-landing .webcam-card") : null;
+    const nav = enableParallax ? document.querySelector("#page-landing nav") : null;
+    const hiwSteps = enableParallax
+      ? Array.from(document.querySelectorAll(".hiw-step")).map((step) => ({
+          step,
+          section: step.closest(".hiw-section"),
+          sectionTop: 0,
+        }))
+      : [];
+    const soundwave = enableParallax ? document.getElementById("soundwaveBg") : null;
+
+    let maxScroll = getMaxScroll();
+    let revealObserver = null;
+
+    const refreshScrollMetrics = () => {
+      maxScroll = getMaxScroll();
+      hiwSteps.forEach((entry) => {
+        entry.sectionTop = entry.section ? entry.section.offsetTop : 0;
+      });
+    };
+
     const setPageScroll = (y) => {
-      const clamped = Math.max(0, Math.min(y, getMaxScroll()));
+      const clamped = Math.max(0, Math.min(y, maxScroll));
       window.scrollTo(0, clamped);
-      if (document.scrollingElement) {
-        document.scrollingElement.scrollTop = clamped;
-      }
-      document.documentElement.scrollTop = clamped;
-      document.body.scrollTop = clamped;
       return clamped;
     };
 
     const updateScrollBar = (scrollY) => {
-      const scrollBar = document.getElementById("scrollProgress");
-      const maxScroll = getMaxScroll();
-      if (scrollBar && maxScroll > 0) {
-        scrollBar.style.width = `${(scrollY / maxScroll) * 100}%`;
+      if (!scrollBar) {
+        return;
       }
+
+      if (maxScroll <= 0) {
+        scrollBar.style.transform = "scaleX(0)";
+        return;
+      }
+
+      const progress = Math.max(0, Math.min(scrollY / maxScroll, 1));
+      scrollBar.style.transform = `scaleX(${progress})`;
     };
 
-    const checkReveals = () => {
+    const checkRevealsFallback = () => {
       document.querySelectorAll(".reveal:not(.visible)").forEach((el) => {
         const rect = el.getBoundingClientRect();
         if (rect.top < window.innerHeight * 0.88) {
@@ -270,57 +324,78 @@ export function useMoodifyHomeEffects() {
       });
     };
 
+    if (typeof window !== "undefined" && "IntersectionObserver" in window) {
+      revealObserver = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              entry.target.classList.add("visible");
+              revealObserver?.unobserve(entry.target);
+            }
+          });
+        },
+        {
+          threshold: 0.1,
+          rootMargin: "0px 0px -12% 0px",
+        }
+      );
+
+      document.querySelectorAll(".reveal").forEach((el) => {
+        revealObserver.observe(el);
+      });
+    }
+
     const parallaxOnScroll = (scrollY) => {
-      const orbs = document.querySelectorAll(".orb");
+      if (!enableParallax) {
+        return;
+      }
+
       orbs.forEach((orb, i) => {
         const speed = [0.25, 0.4, 0.15][i] || 0.2;
         const dir = i % 2 === 0 ? 1 : -1;
         orb.style.transform = `translateY(${scrollY * speed * dir}px)`;
       });
 
-      const words = document.querySelectorAll(".parallax-word");
-      words.forEach((word) => {
-        const speed = parseFloat(word.dataset.speed || 0.3);
+      words.forEach(({ word, speed, rotate }) => {
         const offset = scrollY * speed;
-        const rotate = word.style.transform.match(/rotate\(([^)]+)\)/)?.[0] || "";
-        word.style.transform = `translateY(${offset}px) ${rotate}`;
+        word.style.transform = `translateY(${offset}px) ${rotate}`.trim();
       });
 
-      const webcamCard = document.querySelector("#page-landing .webcam-card");
       if (webcamCard) {
         webcamCard.style.transform = `translateY(${scrollY * 0.08}px)`;
       }
 
-      const nav = document.querySelector("#page-landing nav");
       if (nav) {
         const blurVal = Math.min(20 + scrollY * 0.05, 40);
         const bgOpacity = Math.min(0.7 + scrollY * 0.001, 0.95);
         nav.style.backdropFilter = `blur(${blurVal}px)`;
-        nav.style.background = `rgba(248,247,244,${bgOpacity})`;
+        nav.style.backgroundColor = `rgba(248,247,244,${bgOpacity})`;
       }
 
-      const hiwSteps = document.querySelectorAll(".hiw-step");
-      hiwSteps.forEach((step, i) => {
-        const sectionTop = step.closest(".hiw-section")?.offsetTop || 0;
+      hiwSteps.forEach(({ step, sectionTop }, i) => {
         const rel = scrollY - sectionTop + window.innerHeight;
         const dir = i % 2 === 0 ? 1 : -1;
         const drift = Math.max(0, rel) * 0.015 * dir;
         step.style.transform = `translateX(${drift}px)`;
       });
 
-      const soundwave = document.getElementById("soundwaveBg");
       if (soundwave) {
         soundwave.style.transform = `translateY(${scrollY * 0.3}px)`;
+      }
+    };
+
+    const applyScrollEffects = (scrollY) => {
+      updateScrollBar(scrollY);
+      parallaxOnScroll(scrollY);
+      if (!revealObserver) {
+        checkRevealsFallback();
       }
     };
 
     const smoothScrollLoop = () => {
       currentScroll = lerp(currentScroll, targetScroll, 0.085);
       currentScroll = setPageScroll(currentScroll);
-
-      updateScrollBar(currentScroll);
-      parallaxOnScroll(currentScroll);
-      checkReveals();
+      applyScrollEffects(currentScroll);
 
       if (Math.abs(targetScroll - currentScroll) > 0.5) {
         rafId = requestAnimationFrame(smoothScrollLoop);
@@ -338,14 +413,18 @@ export function useMoodifyHomeEffects() {
         smoothScrollToRafId = null;
       }
 
-      currentScroll =
-        window.scrollY ||
-        window.pageYOffset ||
-        document.documentElement.scrollTop ||
-        document.body.scrollTop ||
-        0;
-      targetScroll = currentScroll;
       const destination = Math.max(0, Math.min(y, getMaxScroll()));
+      if (useNativeScrolling) {
+        if (prefersReducedMotion) {
+          window.scrollTo(0, destination);
+        } else {
+          window.scrollTo({ top: destination, behavior: "smooth" });
+        }
+        return;
+      }
+
+      currentScroll = getCurrentScrollY();
+      targetScroll = currentScroll;
       const start = currentScroll;
       const dist = destination - start;
       const startTime = performance.now();
@@ -358,8 +437,7 @@ export function useMoodifyHomeEffects() {
         targetScroll = start + dist * ease(progress);
         currentScroll = targetScroll;
         currentScroll = setPageScroll(currentScroll);
-        parallaxOnScroll(currentScroll);
-        checkReveals();
+        applyScrollEffects(currentScroll);
         if (progress < 1) {
           smoothScrollToRafId = requestAnimationFrame(step);
         } else {
@@ -371,7 +449,6 @@ export function useMoodifyHomeEffects() {
     };
 
     const handleWheel = (event) => {
-      const maxScroll = getMaxScroll();
       if (maxScroll <= 0) return;
 
       event.preventDefault();
@@ -386,22 +463,25 @@ export function useMoodifyHomeEffects() {
       }
     };
 
-    const handleTouchStart = (event) => {
-      touchStartY = event.touches[0].clientY;
+    const handleNativeScroll = () => {
+      if (scrollTicking) {
+        return;
+      }
+
+      scrollTicking = true;
+      rafId = requestAnimationFrame(() => {
+        currentScroll = getCurrentScrollY();
+        applyScrollEffects(currentScroll);
+        scrollTicking = false;
+        rafId = null;
+      });
     };
 
-    const handleTouchMove = (event) => {
-      const maxScroll = getMaxScroll();
-      if (maxScroll <= 0) return;
-
-      const dy = touchStartY - event.touches[0].clientY;
-      targetScroll = Math.max(0, Math.min(targetScroll + dy * 1.2, maxScroll));
-      touchStartY = event.touches[0].clientY;
-
-      if (!isScrolling) {
-        isScrolling = true;
-        rafId = requestAnimationFrame(smoothScrollLoop);
-      }
+    const handleViewportChange = () => {
+      refreshScrollMetrics();
+      currentScroll = getCurrentScrollY();
+      targetScroll = currentScroll;
+      applyScrollEffects(currentScroll);
     };
 
     const anchorHandlers = [];
@@ -433,15 +513,15 @@ export function useMoodifyHomeEffects() {
     homeHowItWorksButton?.addEventListener("click", handleHowItWorksClick);
 
     const buildSoundwave = () => {
-      const soundwave = document.getElementById("soundwaveBg");
-      if (!soundwave || soundwave.children.length > 0) return;
+      const soundwaveNode = document.getElementById("soundwaveBg");
+      if (!soundwaveNode || soundwaveNode.children.length > 0) return;
 
       for (let i = 0; i < 80; i += 1) {
         const bar = document.createElement("div");
         bar.className = "wave-bar";
         const h = 20 + Math.random() * 160;
         bar.style.cssText = `--h:${h}px;height:20px;animation-delay:${Math.random() * 2}s;animation-duration:${1 + Math.random() * 1.5}s`;
-        soundwave.appendChild(bar);
+        soundwaveNode.appendChild(bar);
       }
     };
 
@@ -458,18 +538,25 @@ export function useMoodifyHomeEffects() {
       }
     };
 
-    window.addEventListener("wheel", handleWheel, { passive: false });
-    window.addEventListener("touchstart", handleTouchStart, { passive: true });
-    window.addEventListener("touchmove", handleTouchMove, { passive: true });
+    if (!useNativeScrolling) {
+      window.addEventListener("wheel", handleWheel, { passive: false });
+    } else {
+      window.addEventListener("scroll", handleNativeScroll, { passive: true });
+    }
+
+    window.addEventListener("resize", handleViewportChange, { passive: true });
+    window.addEventListener("orientationchange", handleViewportChange);
 
     buildSoundwave();
     buildEqBg();
-    checkReveals();
+    refreshScrollMetrics();
+    applyScrollEffects(currentScroll);
 
     return () => {
       window.removeEventListener("wheel", handleWheel);
-      window.removeEventListener("touchstart", handleTouchStart);
-      window.removeEventListener("touchmove", handleTouchMove);
+      window.removeEventListener("scroll", handleNativeScroll);
+      window.removeEventListener("resize", handleViewportChange);
+      window.removeEventListener("orientationchange", handleViewportChange);
 
       if (rafId) {
         cancelAnimationFrame(rafId);
@@ -483,6 +570,7 @@ export function useMoodifyHomeEffects() {
       });
 
       homeHowItWorksButton?.removeEventListener("click", handleHowItWorksClick);
+      revealObserver?.disconnect();
     };
   }, []);
 }
